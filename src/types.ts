@@ -1,0 +1,29 @@
+export interface QuoteTemplate {
+  id: string;
+  name: string;
+  backgroundColor: string;
+  textColor: string;
+  fontSize: number;
+  fontFamily: string;
+  textAlignment: 'left' | 'center' | 'right' | 'justify';
+  padding: number;
+  signatureSize: number;
+  signatureColor: string;
+  signatureText: string;
+  signatureAlignment: 'left' | 'center' | 'right';
+  textStyle: {
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+  };
+}
+
+export interface QuoteSettings extends QuoteTemplate {
+  quoteText: string;
+}
+
+export interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}
