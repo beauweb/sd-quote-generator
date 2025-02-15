@@ -20,10 +20,16 @@ export interface QuoteTemplate {
 
 export interface QuoteSettings extends QuoteTemplate {
   quoteText: string;
+  signatureFontFamily?: string;
 }
 
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
+}
+
+export interface ControlsProps {
+  settings: QuoteSettings;
+  onSettingsChange: (settings: QuoteSettings, cursorPosition?: { start: number; end: number }) => void;
 }

@@ -1,13 +1,21 @@
+const { theme } = require('./src/theme');
+
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,jsx,ts,tsx}",
   ],
-  darkMode: 'class',
   theme: {
     extend: {
       colors: {
+        background: theme.colors.background,
+        surface: theme.colors.surface,
+        primary: theme.colors.primary,
+        accent: theme.colors.accent,
+        border: theme.colors.border,
+        hover: theme.colors.hover,
+        active: theme.colors.active,
+        text: theme.colors.text,
         dark: {
           50: '#f6f6f7',
           100: '#e1e3e6',
@@ -20,8 +28,9 @@ export default {
           800: '#151515',
           900: '#0c0c0c',
           950: '#000000',
-        }
-      }
+        },
+        'surface-light': '#3a3a3a',
+      },
     },
   },
   plugins: [],
