@@ -230,12 +230,12 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
   return (
     <div className="space-y-4">
       {/* Quote Text Section */}
-      <div className="bg-surface p-4 rounded-lg border border-border">
+      <div className="bg-dark-900 p-4 rounded-lg border border-dark-700">
         <div className="space-y-3">
           <div className="relative group">
             <textarea
               ref={textareaRef}
-              className="w-full h-24 px-3 py-2 bg-surface-light rounded-lg border border-border text-white resize-none"
+              className="w-full h-24 px-3 py-2 bg-dark-800 rounded-lg border border-dark-700 text-white resize-none"
               value={settings.quoteText}
               onChange={handleTextChange}
               onKeyDown={handleKeyDown}
@@ -243,7 +243,7 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
             />
             <button
               onClick={handlePaste}
-              className="absolute top-2 right-2 p-1.5 rounded-md bg-surface hover:bg-surface-light text-text-secondary hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+              className="absolute top-2 right-2 p-1.5 rounded-md bg-dark-700 hover:bg-dark-600 text-gray-300 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
               title="Paste from clipboard (Ctrl+V)"
             >
               <svg 
@@ -341,7 +341,7 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
 
       {/* Signature Section with Hover Dropdown */}
       <div 
-        className="bg-surface rounded-lg border border-border overflow-hidden group"
+        className="bg-dark-900 rounded-lg border border-dark-700 overflow-hidden group"
         onMouseEnter={() => setIsSignatureOpen(true)}
         onMouseLeave={() => setIsSignatureOpen(false)}
       >

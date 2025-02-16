@@ -2,6 +2,11 @@ export interface QuoteTemplate {
   id: string;
   name: string;
   backgroundColor: string;
+  backgroundGradient?: {
+    type: 'solid' | 'linear' | 'radial';
+    colors: string[];
+    angle?: number;
+  };
   textColor: string;
   fontSize: number;
   fontFamily: string;
