@@ -9,6 +9,7 @@ interface ControlsProps {
 }
 
 export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }) => {
+  const [isTextOpen, setIsTextOpen] = useState(true);
   const [isSignatureOpen, setIsSignatureOpen] = useState(false);
   const fonts = [
     // English Serif Fonts
@@ -228,204 +229,224 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
   };
 
   return (
-    <div className="space-y-4">
+    <div className="h-full flex flex-col space-y-4 overflow-auto">
       {/* Quote Text Section */}
-      <div className="bg-dark-900 p-4 rounded-lg border border-dark-700">
-        <div className="space-y-3">
-          <div className="relative group">
-            <textarea
-              ref={textareaRef}
-              className="w-full h-24 px-3 py-2 bg-dark-800 rounded-lg border border-dark-700 text-white resize-none"
-              value={settings.quoteText}
-              onChange={handleTextChange}
-              onKeyDown={handleKeyDown}
-              placeholder="Enter your quote here..."
-            />
-            <button
-              onClick={handlePaste}
-              className="absolute top-2 right-2 p-1.5 rounded-md bg-dark-700 hover:bg-dark-600 text-gray-300 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
-              title="Paste from clipboard (Ctrl+V)"
-            >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                className="w-4 h-4"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" 
-                />
-              </svg>
-            </button>
-          </div>
-          {textStyleButtons()}
-        </div>
-
-        <div className="mt-3 space-y-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-200 mb-1">
-              Font Family
-            </label>
-            <select
-              className="w-full px-3 py-1.5 bg-dark-800 rounded-lg border border-dark-700 text-white"
-              value={settings.fontFamily}
-              onChange={(e) => updateSettings({ fontFamily: e.target.value })}
-            >
-              {fonts.map((font) => (
-                <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-                  {font.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-200 mb-1">
-                Font Size: {settings.fontSize}px
-              </label>
-              <input
-                type="range"
-                min="20"
-                max="100"
-                value={settings.fontSize}
-                onChange={(e) => updateSettings({ fontSize: parseInt(e.target.value) })}
-                className="w-full accent-purple-600"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-200 mb-1">
-                Padding: {settings.padding}px
-              </label>
-              <input
-                type="range"
-                min="20"
-                max="200"
-                value={settings.padding}
-                onChange={(e) => updateSettings({ padding: parseInt(e.target.value) })}
-                className="w-full accent-purple-600"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-200 mb-1">
-              Text Alignment
-            </label>
-            {textAlignmentButtons(settings.textAlignment, (alignment) =>
-              updateSettings({ textAlignment: alignment })
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <ColorPicker
-              label="Background Color"
-              color={settings.backgroundColor}
-              onChange={(color) => updateSettings({ backgroundColor: color })}
-              settings={settings}
-            />
-            <ColorPicker
-              label="Text Color"
-              color={settings.textColor}
-              onChange={(color) => updateSettings({ textColor: color })}
-              settings={settings}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Signature Section with Hover Dropdown */}
-      <div 
-        className="bg-dark-900 rounded-lg border border-dark-700 overflow-hidden group"
-        onMouseEnter={() => setIsSignatureOpen(true)}
-        onMouseLeave={() => setIsSignatureOpen(false)}
-      >
+      <div className="bg-[rgb(12_12_12/0.8)] backdrop-blur-md p-4 rounded-lg border border-dark-700 shadow-lg">
         <button
-          className="w-full px-4 py-3 flex items-center justify-between text-gray-200 hover:bg-dark-800 transition-colors"
+          onClick={() => setIsTextOpen(!isTextOpen)}
+          className="w-full flex items-center justify-between p-2 rounded-lg bg-dark-800 text-gray-200 hover:bg-dark-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 group"
+          aria-expanded={isTextOpen}
+          aria-controls="text-settings-panel"
+          title="Toggle text settings"
         >
-          <span className="font-medium">Signature Settings</span>
-          <ChevronUp 
-            className={`w-5 h-5 transform transition-transform duration-300 ${
-              isSignatureOpen ? 'rotate-0' : 'rotate-180'
-            }`}
-          />
+          <h3 className="text-lg font-medium group-hover:text-white transition-colors">Text Settings</h3>
+          {isTextOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
         </button>
-
-        <div 
-          className={`transition-all duration-300 ease-in-out ${
-            isSignatureOpen 
-              ? 'max-h-[500px] opacity-100' 
-              : 'max-h-0 opacity-0'
-          }`}
+    
+        <div
+          id="text-settings-panel"
+          className={`mt-4 space-y-4 ${isTextOpen ? 'block' : 'hidden'}`}
+          aria-hidden={!isTextOpen}
         >
-          <div className="p-4 border-t border-dark-700 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-200 mb-1">
-                  Signature Text
-                </label>
-                <input
-                  type="text"
-                  value={settings.signatureText}
-                  onChange={(e) => updateSettings({ signatureText: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-dark-800 rounded-lg border border-dark-700 text-white"
+          <div className="grid grid-cols-12 gap-3">
+            <div className="col-span-12">
+              {textStyleButtons()}
+            </div>
+    
+            <div className="col-span-12">
+              <div className="relative group">
+                <textarea
+                  ref={textareaRef}
+                  className="w-full h-20 px-3 py-2 bg-dark-800 rounded-lg border border-dark-700 text-white resize-none transition-all focus:border-purple-500 focus:ring-1 focus:ring-purple-500 overflow-hidden"
+                  value={settings.quoteText}
+                  onChange={handleTextChange}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Enter your quote here..."
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-200 mb-1">
-                  Signature Font
-                </label>
-                <select
-                  className="w-full px-3 py-1.5 bg-dark-800 rounded-lg border border-dark-700 text-white"
-                  value={settings.signatureFontFamily || settings.fontFamily}
-                  onChange={(e) => updateSettings({ signatureFontFamily: e.target.value })}
+                <button
+                  onClick={handlePaste}
+                  className="absolute top-2 right-2 p-1.5 rounded-md bg-dark-700 hover:bg-dark-600 text-gray-300 hover:text-white transition-all duration-200 opacity-0 group-hover:opacity-100"
+                  title="Paste from clipboard (Ctrl+V)"
                 >
-                  {fonts.map((font) => (
-                    <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-                      {font.name}
-                    </option>
-                  ))}
-                </select>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    className="w-4 h-4"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" 
+                    />
+                  </svg>
+                </button>
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-200 mb-1">
-                  Signature Size: {settings.signatureSize}px
+    
+            <div className="col-span-8">
+              <label className="block text-sm font-medium text-gray-200 mb-1">
+                Font Family
+              </label>
+              <select
+                className="w-full h-9 px-3 py-1 bg-dark-800 rounded-lg border border-dark-700 text-white transition-colors hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
+                value={settings.fontFamily}
+                onChange={(e) => updateSettings({ fontFamily: e.target.value })}
+                title="Select Font Family"
+              >
+                {fonts.map((font) => (
+                  <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+                    {font.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+    
+            <div className="col-span-4">
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-200">
+                  Font Size: {settings.fontSize}px
                 </label>
                 <input
                   type="range"
                   min="20"
                   max="100"
-                  value={settings.signatureSize}
-                  onChange={(e) => updateSettings({ signatureSize: parseInt(e.target.value) })}
-                  className="w-full accent-purple-600"
+                  value={settings.fontSize}
+                  onChange={(e) => updateSettings({ fontSize: parseInt(e.target.value) })}
+                  className="w-full accent-purple-600 transition-all hover:accent-purple-500"
+                  title={`Adjust font size (${settings.fontSize}px)`}
                 />
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-200 mb-1">
-                  Signature Alignment
+            </div>
+    
+            <div className="col-span-4">
+              <label className="block text-sm font-medium text-gray-200 mb-1">
+                Text Alignment
+              </label>
+              {textAlignmentButtons(settings.textAlignment, (alignment) =>
+                updateSettings({ textAlignment: alignment })
+              )}
+            </div>
+    
+            <div className="col-span-4">
+              <ColorPicker
+                label="Background Color"
+                color={settings.backgroundColor}
+                onChange={(color) => updateSettings({ backgroundColor: color })}
+                settings={settings}
+              />
+            </div>
+    
+            <div className="col-span-4">
+              <ColorPicker
+                label="Text Color"
+                color={settings.textColor}
+                onChange={(color) => updateSettings({ textColor: color })}
+                settings={settings}
+              />
+            </div>
+    
+            <div className="col-span-12">
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-200">
+                  Padding: {settings.padding}px
                 </label>
-                {signatureAlignmentButtons(settings.signatureAlignment, (alignment) =>
-                  updateSettings({ signatureAlignment: alignment })
-                )}
+                <input
+                  type="range"
+                  min="20"
+                  max="200"
+                  value={settings.padding}
+                  onChange={(e) => updateSettings({ padding: parseInt(e.target.value) })}
+                  className="w-full accent-purple-600 transition-all hover:accent-purple-500"
+                  title={`Adjust padding (${settings.padding}px)`}
+                />
               </div>
             </div>
+          </div>
+        </div>
+      </div>
 
-            <ColorPicker
-              label="Signature Color"
-              color={settings.signatureColor}
-              onChange={(color) => updateSettings({ signatureColor: color })}
-              settings={settings}
-            />
+      {/* Signature Section */}
+      <div className="bg-[rgb(12_12_12/0.8)] backdrop-blur-md p-4 rounded-lg border border-dark-700 shadow-lg">
+        <button
+          onClick={() => setIsSignatureOpen(!isSignatureOpen)}
+          className="w-full flex items-center justify-between p-2 rounded-lg bg-dark-800 text-gray-200 hover:bg-dark-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 group"
+          aria-expanded={isSignatureOpen}
+          aria-controls="signature-settings-panel"
+          title="Toggle signature settings"
+        >
+          <h3 className="text-lg font-medium group-hover:text-white transition-colors">Signature Settings</h3>
+          {isSignatureOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+        </button>
+    
+        <div
+          id="signature-settings-panel"
+          className={`mt-4 ${isSignatureOpen ? 'block' : 'hidden'}`}
+          aria-hidden={!isSignatureOpen}
+        >
+          <div className="grid grid-cols-12 gap-3">
+            <div className="col-span-4">
+              <label className="block text-sm font-medium text-gray-200 mb-1">
+                Signature Text
+              </label>
+              <input
+                type="text"
+                value={settings.signatureText}
+                onChange={(e) => updateSettings({ signatureText: e.target.value })}
+                className="w-full h-9 px-3 py-1 bg-dark-800 rounded-lg border border-dark-700 text-white transition-colors hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
+              />
+            </div>
+    
+            <div className="col-span-4">
+              <label className="block text-sm font-medium text-gray-200 mb-1">
+                Signature Font
+              </label>
+              <select
+                className="w-full h-9 px-3 py-1 bg-dark-800 rounded-lg border border-dark-700 text-white transition-colors hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
+                value={settings.signatureFontFamily || settings.fontFamily}
+                onChange={(e) => updateSettings({ signatureFontFamily: e.target.value })}
+              >
+                {fonts.map((font) => (
+                  <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+                    {font.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+    
+            <div className="col-span-4">
+              <label className="block text-sm font-medium text-gray-200 mb-1">
+                Size: {settings.signatureSize}px
+              </label>
+              <input
+                type="range"
+                min="20"
+                max="100"
+                value={settings.signatureSize}
+                onChange={(e) => updateSettings({ signatureSize: parseInt(e.target.value) })}
+                className="w-full accent-purple-600 transition-all hover:accent-purple-500"
+              />
+            </div>
+    
+            <div className="col-span-6">
+              <label className="block text-sm font-medium text-gray-200 mb-1">
+                Alignment
+              </label>
+              {signatureAlignmentButtons(settings.signatureAlignment, (alignment) =>
+                updateSettings({ signatureAlignment: alignment })
+              )}
+            </div>
+    
+            <div className="col-span-6">
+              <ColorPicker
+                label="Color"
+                color={settings.signatureColor}
+                onChange={(color) => updateSettings({ signatureColor: color })}
+                settings={settings}
+              />
+            </div>
           </div>
         </div>
       </div>

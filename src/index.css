@@ -2,21 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-dark-950 text-white overflow-x-hidden;
-  height: 100vh;
+html, body {
+  @apply bg-dark-950 text-white;
+  height: 100%;
   margin: 0;
   padding: 0;
+  overflow: hidden;
 }
 
 #root {
   height: 100%;
-  overflow: auto;
+  overflow: hidden;
+}
+
+/* Hide scrollbar but keep functionality */
+.overflow-auto {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-/* Hide scrollbar but keep functionality */
+.overflow-auto::-webkit-scrollbar {
+  display: none;
+}
+
 #root::-webkit-scrollbar {
   display: none;
 }

@@ -14,6 +14,8 @@ import { Sidebar } from './components/Sidebar';
 import { FAB } from './components/FAB';
 import { theme } from './theme';
 import { MenuIcon, GridIcon, ListIcon, SunIcon, MoonIcon, PlusIcon } from './icons';
+import { Header } from './components/Header';
+import { Footer } from './components/Footer';
 
 function App() {
   const {
@@ -180,72 +182,61 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <div className="min-h-screen bg-background text-text-primary py-4">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-4">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
-              SD Quotes Creator
-            </h1>
-            <p className="mt-1 text-gray-400 text-sm">
-              <em>Design and share stunning multilingual quote images effortlessly!</em>
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Preview Section - Move to top on mobile, left on desktop */}
-            <div className="lg:sticky lg:top-4 order-1 lg:order-none">
-              <div className="bg-surface p-4 rounded-lg shadow-xl border border-border">
-                <QuoteCanvas settings={settings} />
-                <div className="mt-3">
-                  <ExportButton settings={settings} onExport={handleExport} />
+      <div className="min-h-screen h-screen flex flex-col overflow-hidden bg-background text-text-primary">
+        <Header />
+        <main className="flex-1 overflow-hidden py-6">
+          <div className="h-full max-w-7xl mx-auto px-4 overflow-hidden">
+            <div className="h-full overflow-hidden">
+              <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Preview Section */}
+                <div className="lg:h-full overflow-auto">
+                  <div className="bg-[rgb(12_12_12/0.8)] backdrop-blur-md p-6 rounded-lg shadow-lg border border-dark-700">
+                    <QuoteCanvas settings={settings} />
+                    <div className="mt-4">
+                      <ExportButton settings={settings} onExport={handleExport} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Controls Section */}
+                <div className="lg:h-full overflow-auto">
+                  <div className="h-full space-y-6">
+                    <div className="bg-surface/80 backdrop-blur-md p-4 rounded-lg border border-border">
+                      <div className="flex items-center gap-2 mb-4">
+                        <button
+                          onClick={undo}
+                          disabled={!canUndo}
+                          className={`p-2 rounded-lg ${canUndo ? 'bg-primary hover:bg-opacity-90' : 'bg-surface-light text-disabled cursor-not-allowed'} transition-colors`}
+                          title="Undo (Ctrl+Z)"
+                        >
+                          <Undo2 size={20} />
+                        </button>
+                        <button
+                          onClick={redo}
+                          disabled={!canRedo}
+                          className={`p-2 rounded-lg ${canRedo ? 'bg-primary hover:bg-opacity-90' : 'bg-surface-light text-disabled cursor-not-allowed'} transition-colors`}
+                          title="Redo (Ctrl+Y or Ctrl+Shift+Z)"
+                        >
+                          <Redo2 size={20} />
+                        </button>
+                        <div className="flex-1" />
+                        <button
+                          onClick={handleReset}
+                          className="p-2 rounded-lg bg-error hover:bg-opacity-90 transition-colors"
+                          title="Reset to default settings"
+                        >
+                          <RotateCcw size={20} />
+                        </button>
+                      </div>
+                      <Controls settings={settings} onSettingsChange={setSettings} />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-
-            {/* Controls Section */}
-            <div>
-              {/* History and Reset Controls */}
-              <div className="flex items-center gap-2 mb-4 bg-surface p-2 rounded-lg border border-border">
-                <button
-                  onClick={undo}
-                  disabled={!canUndo}
-                  className={`p-2 rounded-lg ${
-                    canUndo 
-                      ? 'bg-primary hover:bg-opacity-90' 
-                      : 'bg-surface-light text-disabled cursor-not-allowed'
-                  } transition-colors`}
-                  title="Undo (Ctrl+Z)"
-                >
-                  <Undo2 size={20} />
-                </button>
-                <button
-                  onClick={redo}
-                  disabled={!canRedo}
-                  className={`p-2 rounded-lg ${
-                    canRedo 
-                      ? 'bg-primary hover:bg-opacity-90' 
-                      : 'bg-surface-light text-disabled cursor-not-allowed'
-                  } transition-colors`}
-                  title="Redo (Ctrl+Y or Ctrl+Shift+Z)"
-                >
-                  <Redo2 size={20} />
-                </button>
-
-                <div className="flex-1" /> {/* Spacer */}
-
-                <button
-                  onClick={handleReset}
-                  className="p-2 rounded-lg bg-error hover:bg-opacity-90 transition-colors"
-                  title="Reset to default settings"
-                >
-                  <RotateCcw size={20} />
-                </button>
-              </div>
-              
-              <Controls settings={settings} onSettingsChange={setSettings} />
-            </div>
           </div>
-        </div>
+        </main>
+        <Footer />
       </div>
     </ThemeProvider>
   );
