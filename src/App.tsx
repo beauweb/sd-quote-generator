@@ -167,6 +167,7 @@ function App() {
     signatureColor: '#000000',
     signatureText: '#SDdiary',
     signatureAlignment: 'center',
+    signatureBottomMargin: 100, // Set default bottom margin to 100px
     quoteText: "I'm selfish, impatient and a little insecure. I make mistakes, I am out of control and at times hard to handle. But if you can't handle me at my worst, then you sure as hell don't deserve me at my best",
     textStyle: {
       bold: false,

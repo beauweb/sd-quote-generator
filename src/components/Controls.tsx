@@ -447,6 +447,23 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
                 settings={settings}
               />
             </div>
+
+            <div className="col-span-12">
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-200">
+                  Bottom Margin: {settings.signatureBottomMargin || 100}px
+                </label>
+                <input
+                  type="range"
+                  min="20"
+                  max="200"
+                  value={settings.signatureBottomMargin || 100}
+                  onChange={(e) => updateSettings({ signatureBottomMargin: parseInt(e.target.value) })}
+                  className="w-full accent-purple-600 transition-all hover:accent-purple-500"
+                  title={`Adjust bottom margin (${settings.signatureBottomMargin || 100}px)`}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -104,6 +104,8 @@ export const QuoteCanvas: React.FC<QuoteCanvasProps> = ({
     ctx.fillStyle = settings.signatureColor;
     ctx.textAlign = settings.signatureAlignment as CanvasTextAlign;
     
+    // Calculate signature position with fixed bottom margin
+    const bottomMargin = settings.signatureBottomMargin || 100; // Use the new setting or default to 100
     let signatureX;
     switch(settings.signatureAlignment) {
       case 'left':
@@ -116,7 +118,8 @@ export const QuoteCanvas: React.FC<QuoteCanvasProps> = ({
         signatureX = canvas.width / 2;
     }
     
-    ctx.fillText(settings.signatureText, signatureX, canvas.height - padding);
+    // Position signature at specified distance from bottom
+    ctx.fillText(settings.signatureText, signatureX, canvas.height - bottomMargin);
   }, [settings, canvasSize]);
 
   return (
