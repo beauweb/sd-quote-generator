@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { HexColorPicker } from 'react-colorful';
 import { Modal } from './Modal';
-import { QuoteCanvas } from './QuoteCanvas';
 import { QuoteSettings } from '../types';
 
 interface ColorPickerProps {
@@ -14,8 +13,6 @@ interface ColorPickerProps {
 export const ColorPicker: React.FC<ColorPickerProps> = ({ color, onChange, label, settings }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState(color.replace('#', ''));
-  const [previewSettings, setPreviewSettings] = useState(settings);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace('#', '');
     setInputValue(value);
@@ -23,28 +20,12 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ color, onChange, label
     if (/^[0-9A-Fa-f]{6}$/.test(value)) {
       const newColor = '#' + value;
       onChange(newColor);
-      updatePreviewSettings(newColor);
-    }
-  };
-
-  const updatePreviewSettings = (newColor: string) => {
-    switch(label) {
-      case 'Background Color':
-        setPreviewSettings({ ...settings, backgroundColor: newColor });
-        break;
-      case 'Text Color':
-        setPreviewSettings({ ...settings, textColor: newColor });
-        break;
-      case 'Signature Color':
-        setPreviewSettings({ ...settings, signatureColor: newColor });
-        break;
     }
   };
 
   React.useEffect(() => {
     setInputValue(color.replace('#', ''));
-    setPreviewSettings(settings);
-  }, [color, settings]);
+  }, [color]);
 
   const handleBlur = () => {
     if (/^[0-9A-Fa-f]{6}$/.test(inputValue)) {
@@ -79,23 +60,13 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ color, onChange, label
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <div className="space-y-4">
           <h3 className="text-lg font-medium text-white">Choose {label.toLowerCase()}</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <HexColorPicker 
-                color={color} 
-                onChange={(newColor) => {
-                  onChange(newColor);
-                  setInputValue(newColor.replace('#', ''));
-                  updatePreviewSettings(newColor);
-                }} 
-              />
-            </div>
-            <div className="bg-dark-800 rounded-lg p-4">
-              <div className="w-full aspect-square">
-                <QuoteCanvas settings={previewSettings} canvasSize={200} />
-              </div>
-            </div>
-          </div>
+          <HexColorPicker 
+            color={color} 
+            onChange={(newColor) => {
+              onChange(newColor);
+              setInputValue(newColor.replace('#', ''));
+            }} 
+          />
         </div>
       </Modal>
     </div>
