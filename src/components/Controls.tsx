@@ -168,6 +168,41 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
     </div>
   );
 
+  // Add line height and letter spacing controls
+  const renderTypographyControls = () => (
+    <div className="grid grid-cols-2 gap-3">
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-200">
+          Line Height: {settings.lineHeight || 1.2}
+        </label>
+        <input
+          type="range"
+          min="1"
+          max="2"
+          step="0.1"
+          value={settings.lineHeight || 1.2}
+          onChange={(e) => updateSettings({ lineHeight: parseFloat(e.target.value) })}
+          className="w-full accent-purple-600 transition-all hover:accent-purple-500"
+          title={`Adjust line height (${settings.lineHeight || 1.2})`}
+        />
+      </div>
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-200">
+          Letter Spacing: {settings.letterSpacing || 0}px
+        </label>
+        <input
+          type="range"
+          min="-2"
+          max="10"
+          value={settings.letterSpacing || 0}
+          onChange={(e) => updateSettings({ letterSpacing: parseInt(e.target.value) })}
+          className="w-full accent-purple-600 transition-all hover:accent-purple-500"
+          title={`Adjust letter spacing (${settings.letterSpacing || 0}px)`}
+        />
+      </div>
+    </div>
+  );
+
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
     const newPosition = {
@@ -319,6 +354,11 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
                   title={`Adjust font size (${settings.fontSize}px)`}
                 />
               </div>
+            </div>
+
+            {/* Add line height and letter spacing controls */}
+            <div className="col-span-12">
+              {renderTypographyControls()}
             </div>
     
             <div className="col-span-4">

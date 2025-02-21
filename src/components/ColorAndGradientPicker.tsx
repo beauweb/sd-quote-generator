@@ -15,7 +15,8 @@ export const ColorAndGradientPicker: React.FC<ColorAndGradientPickerProps> = ({
     if (type === 'solid') {
       onSettingsChange({
         backgroundColor: settings.backgroundColor,
-        backgroundGradient: undefined
+        backgroundGradient: undefined,
+        pattern: undefined
       });
     } else {
       onSettingsChange({
@@ -27,6 +28,10 @@ export const ColorAndGradientPicker: React.FC<ColorAndGradientPickerProps> = ({
         }
       });
     }
+  };
+
+  const handlePatternChange = (pattern: 'dots' | 'lines' | 'waves' | undefined) => {
+    onSettingsChange({ pattern });
   };
 
   return (
@@ -65,12 +70,59 @@ export const ColorAndGradientPicker: React.FC<ColorAndGradientPickerProps> = ({
       </div>
 
       {!settings.backgroundGradient ? (
-        <ColorPicker
-          label="Background Color"
-          color={settings.backgroundColor}
-          onChange={(color) => onSettingsChange({ backgroundColor: color })}
-          settings={settings}
-        />
+        <div className="space-y-4">
+          <ColorPicker
+            label="Background Color"
+            color={settings.backgroundColor}
+            onChange={(color) => onSettingsChange({ backgroundColor: color })}
+            settings={settings}
+          />
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-200">Pattern Overlay</label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handlePatternChange(undefined)}
+                className={`px-3 py-1.5 rounded-lg ${
+                  !settings.pattern
+                    ? 'bg-primary text-white'
+                    : 'bg-surface-light text-gray-200 hover:bg-opacity-80'
+                } transition-colors`}
+              >
+                None
+              </button>
+              <button
+                onClick={() => handlePatternChange('dots')}
+                className={`px-3 py-1.5 rounded-lg ${
+                  settings.pattern === 'dots'
+                    ? 'bg-primary text-white'
+                    : 'bg-surface-light text-gray-200 hover:bg-opacity-80'
+                } transition-colors`}
+              >
+                Dots
+              </button>
+              <button
+                onClick={() => handlePatternChange('lines')}
+                className={`px-3 py-1.5 rounded-lg ${
+                  settings.pattern === 'lines'
+                    ? 'bg-primary text-white'
+                    : 'bg-surface-light text-gray-200 hover:bg-opacity-80'
+                } transition-colors`}
+              >
+                Lines
+              </button>
+              <button
+                onClick={() => handlePatternChange('waves')}
+                className={`px-3 py-1.5 rounded-lg ${
+                  settings.pattern === 'waves'
+                    ? 'bg-primary text-white'
+                    : 'bg-surface-light text-gray-200 hover:bg-opacity-80'
+                } transition-colors`}
+              >
+                Waves
+              </button>
+            </div>
+          </div>
+        </div>
       ) : (
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
