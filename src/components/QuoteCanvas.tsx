@@ -148,8 +148,22 @@ export const QuoteCanvas: React.FC<QuoteCanvasProps> = ({
         
         let x = padding;
         line.words.forEach((word, index) => {
-          ctx.fillText(word, x, y);
-          x += ctx.measureText(word).width + spaceBetween;
+          if (settings.letterSpacing) {
+            // Improved letter spacing for complex scripts
+            const chars = Array.from(word); // Properly split Unicode characters
+            for (let i = 0; i < chars.length; i++) {
+              ctx.fillText(chars[i], x, y);
+              const charWidth = ctx.measureText(chars[i]).width;
+              x += charWidth + (i < chars.length - 1 ? settings.letterSpacing : 0);
+            }
+            // Add word spacing
+            if (index < line.words.length - 1) {
+              x += spaceBetween;
+            }
+          } else {
+            ctx.fillText(word, x, y);
+            x += ctx.measureText(word).width + spaceBetween;
+          }
         });
       } else {
         let x;
@@ -163,7 +177,29 @@ export const QuoteCanvas: React.FC<QuoteCanvasProps> = ({
           default:
             x = canvas.width / 2;
         }
-        ctx.fillText(line.text, x, y);
+        
+        if (settings.letterSpacing) {
+          // For non-justified text with letter spacing
+          const chars = Array.from(line.text); // Properly split Unicode characters
+          const totalWidth = chars.reduce((width, char) => {
+            return width + ctx.measureText(char).width;
+          }, 0) + (chars.length - 1) * settings.letterSpacing;
+          
+          // Adjust starting position for center and right alignment
+          if (settings.textAlignment === 'center') {
+            x -= totalWidth / 2;
+          } else if (settings.textAlignment === 'right') {
+            x -= totalWidth;
+          }
+          
+          // Draw each character with spacing
+          for (let i = 0; i < chars.length; i++) {
+            ctx.fillText(chars[i], x, y);
+            x += ctx.measureText(chars[i]).width + settings.letterSpacing;
+          }
+        } else {
+          ctx.fillText(line.text, x, y);
+        }
       }
       y += lineHeight;
     });
