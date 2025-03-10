@@ -1,7 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ColorPicker } from './ColorPicker';
-import { QuoteSettings } from '../types';
-import { AlignLeft, AlignCenter, AlignRight, AlignJustify, Bold, Italic, Underline, ChevronDown, ChevronUp } from 'lucide-react';
+import { QuoteSettings, TextShadowEffect, TextOutlineEffect, GradientEffect } from '../types';
+import { 
+  AlignLeft, AlignCenter, AlignRight, AlignJustify, 
+  Bold, Italic, Underline, ChevronDown, ChevronUp,
+  Type, Palette, Box, Circle, Droplet, Layers
+} from 'lucide-react';
+import './Controls.css';
 
 interface ControlsProps {
   settings: QuoteSettings;
@@ -11,36 +16,39 @@ interface ControlsProps {
 export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }) => {
   const [isTextOpen, setIsTextOpen] = useState(true);
   const [isSignatureOpen, setIsSignatureOpen] = useState(false);
+  const [isEffectsOpen, setIsEffectsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'text' | 'style' | 'effects' | 'signature'>('text');
+  const [fontSize, setFontSize] = useState(settings.fontSize);
+  
   const fonts = [
-    // English Serif Fonts
-    { name: 'Playfair Display', value: 'Playfair Display' },
-    { name: 'Lora', value: 'Lora' },
-    { name: 'Merriweather', value: 'Merriweather' },
-    { name: 'Crimson Text', value: 'Crimson Text' },
-    { name: 'Libre Baskerville', value: 'Libre Baskerville' },
-    { name: 'PT Serif', value: 'PT Serif' },
-    { name: 'Noto Serif', value: 'Noto Serif' },
-    // English Sans-Serif Fonts
-    { name: 'Montserrat', value: 'Montserrat' },
+    { name: 'Arial', value: 'Arial' },
+    { name: 'Helvetica', value: 'Helvetica' },
+    { name: 'Times New Roman', value: 'Times New Roman' },
+    { name: 'Courier New', value: 'Courier New' },
+    { name: 'Georgia', value: 'Georgia' },
+    { name: 'Verdana', value: 'Verdana' },
     { name: 'Roboto', value: 'Roboto' },
     { name: 'Open Sans', value: 'Open Sans' },
-    { name: 'Poppins', value: 'Poppins' },
-    { name: 'Inter', value: 'Inter' },
+    { name: 'Lato', value: 'Lato' },
+    { name: 'Montserrat', value: 'Montserrat' },
+    { name: 'Noto Serif', value: 'Noto Serif' },
+    { name: 'Playfair Display', value: 'Playfair Display' },
+    { name: 'Merriweather', value: 'Merriweather' },
+    { name: 'PT Serif', value: 'PT Serif' },
+    { name: 'Libre Baskerville', value: 'Libre Baskerville' },
+    { name: 'Crimson Text', value: 'Crimson Text' },
     { name: 'Source Sans Pro', value: 'Source Sans Pro' },
     { name: 'Nunito', value: 'Nunito' },
-    // System Fonts
-    { name: 'Arial', value: 'Arial' },
-    { name: 'Times New Roman', value: 'Times New Roman' },
-    { name: 'Helvetica', value: 'Helvetica' },
-    // Gujarati Fonts
-    { name: 'Noto Sans Gujarati', value: 'Noto Sans Gujarati' },
-    { name: 'Rasa', value: 'Rasa' },
-    { name: 'Hind Vadodara', value: 'Hind Vadodara' },
-    // Hindi/Devanagari Fonts
+    { name: 'Inter', value: 'Inter' },
+    { name: 'Poppins', value: 'Poppins' },
     { name: 'Noto Sans Devanagari', value: 'Noto Sans Devanagari' },
     { name: 'Hind', value: 'Hind' },
     { name: 'Mukta', value: 'Mukta' },
-    { name: 'Tiro Devanagari Hindi', value: 'Tiro Devanagari Hindi' }
+    { name: 'Noto Sans Gujarati', value: 'Noto Sans Gujarati' },
+    { name: 'Rasa', value: 'Rasa' },
+    { name: 'Baloo 2', value: 'Baloo 2' },
+    { name: 'Tiro Devanagari Hindi', value: 'Tiro Devanagari Hindi' },
+    { name: 'Tiro Gujarati', value: 'Tiro Gujarati' },
   ];
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -48,6 +56,34 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
     start: 0,
     end: 0
   });
+
+  const defaultTextShadow: TextShadowEffect = {
+    enabled: true,
+    color: '#000000',
+    blur: 4,
+    offsetX: 2,
+    offsetY: 2
+  };
+
+  const defaultTextOutline: TextOutlineEffect = {
+    enabled: true,
+    color: '#000000',
+    width: 2
+  };
+
+  const defaultTextGradient: GradientEffect = {
+    enabled: true,
+    type: 'linear',
+    colors: ['#ff0000', '#0000ff'],
+    angle: 0
+  };
+
+  const defaultTextPath = {
+    enabled: false,
+    radius: 200,
+    angle: 0,
+    direction: 'clockwise' as const
+  };
 
   const updateSettings = (updates: Partial<QuoteSettings>) => {
     onSettingsChange({ ...settings, ...updates });
@@ -178,7 +214,7 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
         <input
           type="range"
           min="1"
-          max="2"
+          max="3"
           step="0.1"
           value={settings.lineHeight || 1.2}
           onChange={(e) => updateSettings({ lineHeight: parseFloat(e.target.value) })}
@@ -210,7 +246,7 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
       end: e.target.selectionEnd || 0
     };
     setCursorPosition(newPosition);
-    onSettingsChange({ ...settings, quoteText: newValue }, newPosition);
+    updateSettings({ quoteText: newValue });
   };
 
   const handlePaste = async () => {
@@ -232,7 +268,7 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
         end: start + text.length
       };
 
-      onSettingsChange({ ...settings, quoteText: newText }, newPosition);
+      updateSettings({ quoteText: newText });
       
       // Restore cursor position after state update
       requestAnimationFrame(() => {
@@ -247,261 +283,967 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
     }
   };
 
-  // Restore cursor position after undo/redo
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea && cursorPosition) {
-      textarea.selectionStart = cursorPosition.start;
-      textarea.selectionEnd = cursorPosition.end;
-    }
-  }, [settings.quoteText, cursorPosition]);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.ctrlKey && e.key === 'v') {
-      e.preventDefault();
-      handlePaste();
-    }
-  };
-
-  return (
-    <div className="h-full flex flex-col space-y-4 overflow-auto">
-      {/* Quote Text Section */}
-      <div className="bg-[rgb(12_12_12/0.8)] backdrop-blur-md p-4 rounded-lg border border-dark-700 shadow-lg">
-        <button
-          onClick={() => setIsTextOpen(!isTextOpen)}
-          className="w-full flex items-center justify-between p-2 rounded-lg bg-dark-800 text-gray-200 hover:bg-dark-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 group"
-          aria-expanded={isTextOpen}
-          aria-controls="text-settings-panel"
-          title="Toggle text settings"
-        >
-          <h3 className="text-lg font-medium group-hover:text-white transition-colors">Text Settings</h3>
-          {isTextOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-        </button>
-    
-        <div
-          id="text-settings-panel"
-          className={`mt-4 space-y-4 ${isTextOpen ? 'block' : 'hidden'}`}
-          aria-hidden={!isTextOpen}
-        >
-          <div className="grid grid-cols-12 gap-3">
-            <div className="col-span-12">
-              {textStyleButtons()}
+  // Add text effects controls
+  const renderTextEffectsControls = () => (
+    <div className="space-y-4">
+      {/* Text Shadow */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-gray-200">Text Shadow</label>
+          <input
+            type="checkbox"
+            checked={settings.textShadow?.enabled || false}
+            onChange={(e) => updateSettings({
+              textShadow: {
+                ...defaultTextShadow,
+                ...(settings.textShadow || {}),
+                enabled: e.target.checked
+              }
+            })}
+            className="toggle"
+          />
+        </div>
+        {settings.textShadow?.enabled && (
+          <div className="grid grid-cols-2 gap-2">
+            <ColorPicker
+              label="Shadow Color"
+              color={settings.textShadow.color}
+              onChange={(color) => updateSettings({
+                textShadow: {
+                  ...defaultTextShadow,
+                  ...(settings.textShadow || {}),
+                  color
+                }
+              })}
+              settings={settings}
+            />
+            <div>
+              <label className="block text-sm text-gray-300">Blur: {settings.textShadow.blur}px</label>
+              <input
+                type="range"
+                min="0"
+                max="20"
+                value={settings.textShadow.blur}
+                onChange={(e) => updateSettings({
+                  textShadow: {
+                    ...defaultTextShadow,
+                    ...(settings.textShadow || {}),
+                    blur: parseInt(e.target.value)
+                  }
+                })}
+                className="w-full accent-purple-600"
+              />
             </div>
-    
-            <div className="col-span-12">
-              <div className="relative group">
-                <textarea
-                  ref={textareaRef}
-                  className="w-full h-20 px-3 py-2 bg-dark-800 rounded-lg border border-dark-700 text-white resize-none transition-all focus:border-purple-500 focus:ring-1 focus:ring-purple-500 overflow-hidden"
-                  value={settings.quoteText}
-                  onChange={handleTextChange}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Enter your quote here..."
-                />
-                <button
-                  onClick={handlePaste}
-                  className="absolute top-2 right-2 p-1.5 rounded-md bg-dark-700 hover:bg-dark-600 text-gray-300 hover:text-white transition-all duration-200 opacity-0 group-hover:opacity-100"
-                  title="Paste from clipboard (Ctrl+V)"
-                >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    className="w-4 h-4"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" 
-                    />
-                  </svg>
-                </button>
+            <div>
+              <label className="block text-sm text-gray-300">Offset X: {settings.textShadow.offsetX}px</label>
+              <input
+                type="range"
+                min="-20"
+                max="20"
+                value={settings.textShadow.offsetX}
+                onChange={(e) => updateSettings({
+                  textShadow: {
+                    ...defaultTextShadow,
+                    ...(settings.textShadow || {}),
+                    offsetX: parseInt(e.target.value)
+                  }
+                })}
+                className="w-full accent-purple-600"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-300">Offset Y: {settings.textShadow.offsetY}px</label>
+              <input
+                type="range"
+                min="-20"
+                max="20"
+                value={settings.textShadow.offsetY}
+                onChange={(e) => updateSettings({
+                  textShadow: {
+                    ...defaultTextShadow,
+                    ...(settings.textShadow || {}),
+                    offsetY: parseInt(e.target.value)
+                  }
+                })}
+                className="w-full accent-purple-600"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Text Outline */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-gray-200">Text Outline</label>
+          <input
+            type="checkbox"
+            checked={settings.textOutline?.enabled || false}
+            onChange={(e) => updateSettings({
+              textOutline: {
+                ...defaultTextOutline,
+                ...(settings.textOutline || {}),
+                enabled: e.target.checked
+              }
+            })}
+            className="toggle"
+          />
+        </div>
+        {settings.textOutline?.enabled && (
+          <div className="grid grid-cols-2 gap-2">
+            <ColorPicker
+              label="Outline Color"
+              color={settings.textOutline.color}
+              onChange={(color) => updateSettings({
+                textOutline: {
+                  ...defaultTextOutline,
+                  ...(settings.textOutline || {}),
+                  color
+                }
+              })}
+              settings={settings}
+            />
+            <div>
+              <label className="block text-sm text-gray-300">Width: {settings.textOutline.width}px</label>
+              <input
+                type="range"
+                min="1"
+                max="10"
+                value={settings.textOutline.width}
+                onChange={(e) => updateSettings({
+                  textOutline: {
+                    ...defaultTextOutline,
+                    ...(settings.textOutline || {}),
+                    width: parseInt(e.target.value)
+                  }
+                })}
+                className="w-full accent-purple-600"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Text Gradient */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-gray-200">Text Gradient</label>
+          <input
+            type="checkbox"
+            checked={settings.textGradient?.enabled || false}
+            onChange={(e) => {
+              const updatedGradient = {
+                ...defaultTextGradient,
+                ...(settings.textGradient || {}),
+                enabled: e.target.checked
+              };
+              updateSettings({ textGradient: updatedGradient });
+            }}
+            className="toggle"
+          />
+        </div>
+        {settings.textGradient?.enabled && (
+          <div className="section-content">
+            <div className="control-grid">
+              <div className="control-row">
+                <div className="control-group">
+                  <label className="control-label">Gradient Type</label>
+                  <div className="gradient-type-buttons">
+                    <button
+                      onClick={() => {
+                        const gradientSettings = settings.textGradient || defaultTextGradient;
+                        updateSettings({
+                          textGradient: {
+                            ...gradientSettings,
+                            type: 'linear'
+                          }
+                        });
+                      }}
+                      className={`gradient-type-button ${(settings.textGradient?.type || 'linear') === 'linear' ? 'active' : ''}`}
+                    >
+                      Linear
+                    </button>
+                    <button
+                      onClick={() => {
+                        const gradientSettings = settings.textGradient || defaultTextGradient;
+                        updateSettings({
+                          textGradient: {
+                            ...gradientSettings,
+                            type: 'radial'
+                          }
+                        });
+                      }}
+                      className={`gradient-type-button ${(settings.textGradient?.type || 'linear') === 'radial' ? 'active' : ''}`}
+                    >
+                      Radial
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-    
-            <div className="col-span-8">
-              <label className="block text-sm font-medium text-gray-200 mb-1">
-                Font Family
-              </label>
-              <select
-                className="w-full h-9 px-3 py-1 bg-dark-800 rounded-lg border border-dark-700 text-white transition-colors hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
-                value={settings.fontFamily}
-                onChange={(e) => updateSettings({ fontFamily: e.target.value })}
-                title="Select Font Family"
-              >
-                {fonts.map((font) => (
-                  <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-                    {font.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-    
-            <div className="col-span-4">
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-200">
-                  Font Size: {settings.fontSize}px
-                </label>
-                <input
-                  type="range"
-                  min="20"
-                  max="100"
-                  value={settings.fontSize}
-                  onChange={(e) => updateSettings({ fontSize: parseInt(e.target.value) })}
-                  className="w-full accent-purple-600 transition-all hover:accent-purple-500"
-                  title={`Adjust font size (${settings.fontSize}px)`}
-                />
+              <div className="control-row">
+                <div className="control-group">
+                  <label className="control-label">Color 1</label>
+                  <ColorPicker
+                    label="Color 1"
+                    color={settings.textGradient?.colors?.[0] || '#ff0000'}
+                    onChange={(color) => {
+                      const gradientSettings = settings.textGradient || defaultTextGradient;
+                      const colors = gradientSettings.colors || ['#ff0000', '#0000ff'];
+                      updateSettings({
+                        textGradient: {
+                          ...gradientSettings,
+                          colors: [color, colors[1]]
+                        }
+                      });
+                    }}
+                    settings={settings}
+                  />
+                </div>
+                <div className="control-group">
+                  <label className="control-label">Color 2</label>
+                  <ColorPicker
+                    label="Color 2"
+                    color={settings.textGradient?.colors?.[1] || '#0000ff'}
+                    onChange={(color) => {
+                      const gradientSettings = settings.textGradient || defaultTextGradient;
+                      const colors = gradientSettings.colors || ['#ff0000', '#0000ff'];
+                      updateSettings({
+                        textGradient: {
+                          ...gradientSettings,
+                          colors: [colors[0], color]
+                        }
+                      });
+                    }}
+                    settings={settings}
+                  />
+                </div>
               </div>
-            </div>
-
-            {/* Add line height and letter spacing controls */}
-            <div className="col-span-12">
-              {renderTypographyControls()}
-            </div>
-    
-            <div className="col-span-4">
-              <label className="block text-sm font-medium text-gray-200 mb-1">
-                Text Alignment
-              </label>
-              {textAlignmentButtons(settings.textAlignment, (alignment) =>
-                updateSettings({ textAlignment: alignment })
+              {(settings.textGradient?.type || 'linear') === 'linear' && (
+                <div className="control-row">
+                  <div className="control-group">
+                    <label className="control-label">Angle</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min="0"
+                        max="360"
+                        value={settings.textGradient?.angle || 0}
+                        onChange={(e) => {
+                          const gradientSettings = settings.textGradient || defaultTextGradient;
+                          updateSettings({
+                            textGradient: {
+                              ...gradientSettings,
+                              angle: parseInt(e.target.value)
+                            }
+                          });
+                        }}
+                        className="slider"
+                      />
+                      <span className="control-value">{settings.textGradient?.angle || 0}°</span>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
-    
-            <div className="col-span-4">
-              <ColorPicker
-                label="Background Color"
-                color={settings.backgroundColor}
-                onChange={(color) => updateSettings({ backgroundColor: color })}
-                settings={settings}
+          </div>
+        )}
+      </div>
+
+      {/* Text Path */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-gray-200">Curved Text</label>
+          <input
+            type="checkbox"
+            checked={settings.textPath?.enabled || false}
+            onChange={(e) => updateSettings({
+              textPath: {
+                ...defaultTextPath,
+                ...(settings.textPath || {}),
+                enabled: e.target.checked
+              }
+            })}
+            className="toggle"
+          />
+        </div>
+        {settings.textPath?.enabled && (
+          <div className="space-y-2">
+            <div>
+              <label className="block text-sm text-gray-300">Radius: {settings.textPath.radius}px</label>
+              <input
+                type="range"
+                min="100"
+                max="500"
+                value={settings.textPath.radius}
+                onChange={(e) => {
+                  if (!settings.textPath) return;
+                  updateSettings({
+                    textPath: {
+                      ...defaultTextPath,
+                      ...settings.textPath,
+                      radius: parseInt(e.target.value)
+                    }
+                  });
+                }}
+                className="w-full accent-purple-600"
               />
             </div>
-    
-            <div className="col-span-4">
-              <ColorPicker
-                label="Text Color"
-                color={settings.textColor}
-                onChange={(color) => updateSettings({ textColor: color })}
-                settings={settings}
+            <div>
+              <label className="block text-sm text-gray-300">Angle: {settings.textPath.angle}°</label>
+              <input
+                type="range"
+                min="0"
+                max="360"
+                value={settings.textPath.angle}
+                onChange={(e) => {
+                  if (!settings.textPath) return;
+                  updateSettings({
+                    textPath: {
+                      ...defaultTextPath,
+                      ...settings.textPath,
+                      angle: parseInt(e.target.value)
+                    }
+                  });
+                }}
+                className="w-full accent-purple-600"
               />
             </div>
-    
-            <div className="col-span-12">
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-200">
-                  Padding: {settings.padding}px
-                </label>
-                <input
-                  type="range"
-                  min="20"
-                  max="200"
-                  value={settings.padding}
-                  onChange={(e) => updateSettings({ padding: parseInt(e.target.value) })}
-                  className="w-full accent-purple-600 transition-all hover:accent-purple-500"
-                  title={`Adjust padding (${settings.padding}px)`}
-                />
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  if (!settings.textPath) return;
+                  updateSettings({
+                    textPath: {
+                      ...defaultTextPath,
+                      ...settings.textPath,
+                      direction: 'clockwise'
+                    }
+                  });
+                }}
+                className={`p-2 rounded ${
+                  settings.textPath.direction === 'clockwise'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-dark-800 text-gray-300'
+                }`}
+              >
+                Clockwise
+              </button>
+              <button
+                onClick={() => {
+                  if (!settings.textPath) return;
+                  updateSettings({
+                    textPath: {
+                      ...defaultTextPath,
+                      ...settings.textPath,
+                      direction: 'counterclockwise'
+                    }
+                  });
+                }}
+                className={`p-2 rounded ${
+                  settings.textPath.direction === 'counterclockwise'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-dark-800 text-gray-300'
+                }`}
+              >
+                Counter-clockwise
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="controls-container">
+      <div className="tabs-container">
+        <div className="tabs">
+          <button
+            onClick={() => setActiveTab('text')}
+            className={`tab ${activeTab === 'text' ? 'active' : ''}`}
+          >
+            <Type size={18} />
+            <span>Text</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('style')}
+            className={`tab ${activeTab === 'style' ? 'active' : ''}`}
+          >
+            <Palette size={18} />
+            <span>Style</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('effects')}
+            className={`tab ${activeTab === 'effects' ? 'active' : ''}`}
+          >
+            <Layers size={18} />
+            <span>Effects</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('signature')}
+            className={`tab ${activeTab === 'signature' ? 'active' : ''}`}
+          >
+            <Box size={18} />
+            <span>Signature</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="panels-container">
+        {/* Text Panel */}
+        <div className={`tab-panel ${activeTab === 'text' ? 'active' : ''}`}>
+          <div className="control-section">
+            <div className="section-content">
+              <div className="control-grid">
+                <div className="control-group">
+                  <textarea
+                    ref={textareaRef}
+                    className="textarea"
+                    value={settings.quoteText}
+                    onChange={handleTextChange}
+                    onKeyDown={(e) => e.ctrlKey && e.key === 'v' && (e.preventDefault(), handlePaste())}
+                    placeholder="Enter your quote here..."
+                  />
+                </div>
+                <div className="control-row">
+                  <div className="control-group">
+                    <label className="control-label">Text Style</label>
+                    <div className="button-group">
+                      <button
+                        onClick={() => updateSettings({
+                          textStyle: { ...settings.textStyle, bold: !settings.textStyle.bold }
+                        })}
+                        className={`icon-button ${settings.textStyle.bold ? 'active' : ''}`}
+                      >
+                        <Bold size={18} />
+                      </button>
+                      <button
+                        onClick={() => updateSettings({
+                          textStyle: { ...settings.textStyle, italic: !settings.textStyle.italic }
+                        })}
+                        className={`icon-button ${settings.textStyle.italic ? 'active' : ''}`}
+                      >
+                        <Italic size={18} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="control-group">
+                    <label className="control-label">Text Alignment</label>
+                    <div className="button-group">
+                      <button
+                        onClick={() => updateSettings({ textAlignment: 'left' })}
+                        className={`icon-button ${settings.textAlignment === 'left' ? 'active' : ''}`}
+                      >
+                        <AlignLeft size={18} />
+                      </button>
+                      <button
+                        onClick={() => updateSettings({ textAlignment: 'center' })}
+                        className={`icon-button ${settings.textAlignment === 'center' ? 'active' : ''}`}
+                      >
+                        <AlignCenter size={18} />
+                      </button>
+                      <button
+                        onClick={() => updateSettings({ textAlignment: 'right' })}
+                        className={`icon-button ${settings.textAlignment === 'right' ? 'active' : ''}`}
+                      >
+                        <AlignRight size={18} />
+                      </button>
+                      <button
+                        onClick={() => updateSettings({ textAlignment: 'justify' })}
+                        className={`icon-button ${settings.textAlignment === 'justify' ? 'active' : ''}`}
+                      >
+                        <AlignJustify size={18} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="control-row">
+                  <div className="control-group">
+                    <label className="control-label">Line Height</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min="1"
+                        max="3"
+                        step="0.1"
+                        value={settings.lineHeight || 1.2}
+                        onChange={(e) => updateSettings({ lineHeight: parseFloat(e.target.value) })}
+                        className="slider"
+                      />
+                      <span className="control-value">{settings.lineHeight || 1.2}</span>
+                    </div>
+                  </div>
+                  <div className="control-group">
+                    <label className="control-label">Letter Spacing</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min="-2"
+                        max="10"
+                        value={settings.letterSpacing || 0}
+                        onChange={(e) => updateSettings({ letterSpacing: parseInt(e.target.value) })}
+                        className="slider"
+                      />
+                      <span className="control-value">{settings.letterSpacing || 0}px</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Signature Section */}
-      <div className="bg-[rgb(12_12_12/0.8)] backdrop-blur-md p-4 rounded-lg border border-dark-700 shadow-lg">
-        <button
-          onClick={() => setIsSignatureOpen(!isSignatureOpen)}
-          className="w-full flex items-center justify-between p-2 rounded-lg bg-dark-800 text-gray-200 hover:bg-dark-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 group"
-          aria-expanded={isSignatureOpen}
-          aria-controls="signature-settings-panel"
-          title="Toggle signature settings"
-        >
-          <h3 className="text-lg font-medium group-hover:text-white transition-colors">Signature Settings</h3>
-          {isSignatureOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-        </button>
-    
-        <div
-          id="signature-settings-panel"
-          className={`mt-4 ${isSignatureOpen ? 'block' : 'hidden'}`}
-          aria-hidden={!isSignatureOpen}
-        >
-          <div className="grid grid-cols-12 gap-3">
-            <div className="col-span-4">
-              <label className="block text-sm font-medium text-gray-200 mb-1">
-                Signature Text
-              </label>
-              <input
-                type="text"
-                value={settings.signatureText}
-                onChange={(e) => updateSettings({ signatureText: e.target.value })}
-                className="w-full h-9 px-3 py-1 bg-dark-800 rounded-lg border border-dark-700 text-white transition-colors hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
-              />
+        {/* Style Panel */}
+        <div className={`tab-panel ${activeTab === 'style' ? 'active' : ''}`}>
+          <div className="control-section">
+            <div className="section-content">
+              <div className="control-grid">
+                <div className="control-row">
+                  <div className="control-group">
+                    <label className="control-label">Font Family</label>
+                    <select
+                      className="select-input"
+                      value={settings.fontFamily}
+                      onChange={(e) => updateSettings({ fontFamily: e.target.value })}
+                    >
+                      {fonts.map((font) => (
+                        <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+                          {font.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="control-group">
+                    <label className="control-label">Font Size</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min="20"
+                        max="100"
+                        value={settings.fontSize}
+                        onChange={(e) => updateSettings({ fontSize: parseInt(e.target.value) })}
+                        className="slider"
+                      />
+                      <span className="control-value">{settings.fontSize}px</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="control-row">
+                  <div className="control-group">
+                    <label className="control-label">Text Color</label>
+                    <ColorPicker
+                      label="Text Color"
+                      color={settings.textColor}
+                      onChange={(color) => updateSettings({ textColor: color })}
+                      settings={settings}
+                    />
+                  </div>
+                  <div className="control-group">
+                    <label className="control-label">Background</label>
+                    <ColorPicker
+                      label="Background"
+                      color={settings.backgroundColor}
+                      onChange={(color) => updateSettings({ backgroundColor: color })}
+                      settings={settings}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-    
-            <div className="col-span-4">
-              <label className="block text-sm font-medium text-gray-200 mb-1">
-                Signature Font
-              </label>
-              <select
-                className="w-full h-9 px-3 py-1 bg-dark-800 rounded-lg border border-dark-700 text-white transition-colors hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
-                value={settings.signatureFontFamily || settings.fontFamily}
-                onChange={(e) => updateSettings({ signatureFontFamily: e.target.value })}
-              >
-                {fonts.map((font) => (
-                  <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-                    {font.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-    
-            <div className="col-span-4">
-              <label className="block text-sm font-medium text-gray-200 mb-1">
-                Size: {settings.signatureSize}px
-              </label>
-              <input
-                type="range"
-                min="20"
-                max="100"
-                value={settings.signatureSize}
-                onChange={(e) => updateSettings({ signatureSize: parseInt(e.target.value) })}
-                className="w-full accent-purple-600 transition-all hover:accent-purple-500"
-              />
-            </div>
-    
-            <div className="col-span-6">
-              <label className="block text-sm font-medium text-gray-200 mb-1">
-                Alignment
-              </label>
-              {signatureAlignmentButtons(settings.signatureAlignment, (alignment) =>
-                updateSettings({ signatureAlignment: alignment })
-              )}
-            </div>
-    
-            <div className="col-span-6">
-              <ColorPicker
-                label="Color"
-                color={settings.signatureColor}
-                onChange={(color) => updateSettings({ signatureColor: color })}
-                settings={settings}
-              />
-            </div>
+          </div>
+        </div>
 
-            <div className="col-span-12">
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-200">
-                  Bottom Margin: {settings.signatureBottomMargin || 100}px
-                </label>
-                <input
-                  type="range"
-                  min="20"
-                  max="200"
-                  value={settings.signatureBottomMargin || 100}
-                  onChange={(e) => updateSettings({ signatureBottomMargin: parseInt(e.target.value) })}
-                  className="w-full accent-purple-600 transition-all hover:accent-purple-500"
-                  title={`Adjust bottom margin (${settings.signatureBottomMargin || 100}px)`}
-                />
+        {/* Effects Panel */}
+        <div className={`tab-panel ${activeTab === 'effects' ? 'active' : ''}`}>
+          {/* Text Shadow Section */}
+          <div className="control-section">
+            <div className="section-header">
+              <span className="section-title">Text Shadow</span>
+              <input
+                type="checkbox"
+                checked={settings.textShadow?.enabled || false}
+                onChange={(e) => updateSettings({
+                  textShadow: {
+                    ...defaultTextShadow,
+                    ...(settings.textShadow || {}),
+                    enabled: e.target.checked
+                  }
+                })}
+                className="toggle"
+              />
+            </div>
+            {settings.textShadow?.enabled && (
+              <div className="section-content">
+                <div className="control-grid">
+                  <div className="control-row">
+                    <div className="control-group">
+                      <label className="control-label">Shadow Color</label>
+                      <ColorPicker
+                        label="Shadow Color"
+                        color={settings.textShadow.color}
+                        onChange={(color) => updateSettings({
+                          textShadow: {
+                            ...defaultTextShadow,
+                            ...(settings.textShadow || {}),
+                            color
+                          }
+                        })}
+                        settings={settings}
+                      />
+                    </div>
+                    <div className="control-group">
+                      <label className="control-label">Blur</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min="0"
+                          max="20"
+                          value={settings.textShadow.blur}
+                          onChange={(e) => updateSettings({
+                            textShadow: {
+                              ...defaultTextShadow,
+                              ...(settings.textShadow || {}),
+                              blur: parseInt(e.target.value)
+                            }
+                          })}
+                          className="slider"
+                        />
+                        <span className="control-value">{settings.textShadow.blur}px</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="control-row">
+                    <div className="control-group">
+                      <label className="control-label">Offset X</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min="-20"
+                          max="20"
+                          value={settings.textShadow.offsetX}
+                          onChange={(e) => updateSettings({
+                            textShadow: {
+                              ...defaultTextShadow,
+                              ...(settings.textShadow || {}),
+                              offsetX: parseInt(e.target.value)
+                            }
+                          })}
+                          className="slider"
+                        />
+                        <span className="control-value">{settings.textShadow.offsetX}px</span>
+                      </div>
+                    </div>
+                    <div className="control-group">
+                      <label className="control-label">Offset Y</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min="-20"
+                          max="20"
+                          value={settings.textShadow.offsetY}
+                          onChange={(e) => updateSettings({
+                            textShadow: {
+                              ...defaultTextShadow,
+                              ...(settings.textShadow || {}),
+                              offsetY: parseInt(e.target.value)
+                            }
+                          })}
+                          className="slider"
+                        />
+                        <span className="control-value">{settings.textShadow.offsetY}px</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Text Outline Section */}
+          <div className="control-section">
+            <div className="section-header">
+              <span className="section-title">Text Outline</span>
+              <input
+                type="checkbox"
+                checked={settings.textOutline?.enabled || false}
+                onChange={(e) => updateSettings({
+                  textOutline: {
+                    ...defaultTextOutline,
+                    ...(settings.textOutline || {}),
+                    enabled: e.target.checked
+                  }
+                })}
+                className="toggle"
+              />
+            </div>
+            {settings.textOutline?.enabled && (
+              <div className="section-content">
+                <div className="control-grid">
+                  <div className="control-row">
+                    <div className="control-group">
+                      <label className="control-label">Outline Color</label>
+                      <ColorPicker
+                        label="Outline Color"
+                        color={settings.textOutline.color}
+                        onChange={(color) => updateSettings({
+                          textOutline: {
+                            ...defaultTextOutline,
+                            ...(settings.textOutline || {}),
+                            color
+                          }
+                        })}
+                        settings={settings}
+                      />
+                    </div>
+                    <div className="control-group">
+                      <label className="control-label">Width</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min="1"
+                          max="10"
+                          value={settings.textOutline.width}
+                          onChange={(e) => updateSettings({
+                            textOutline: {
+                              ...defaultTextOutline,
+                              ...(settings.textOutline || {}),
+                              width: parseInt(e.target.value)
+                            }
+                          })}
+                          className="slider"
+                        />
+                        <span className="control-value">{settings.textOutline.width}px</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Text Gradient Section */}
+          <div className="control-section">
+            <div className="section-header">
+              <span className="section-title">Text Gradient</span>
+              <input
+                type="checkbox"
+                checked={settings.textGradient?.enabled || false}
+                onChange={(e) => {
+                  const updatedGradient = {
+                    ...defaultTextGradient,
+                    ...(settings.textGradient || {}),
+                    enabled: e.target.checked
+                  };
+                  updateSettings({ textGradient: updatedGradient });
+                }}
+                className="toggle"
+              />
+            </div>
+            {settings.textGradient?.enabled && (
+              <div className="section-content">
+                <div className="control-grid">
+                  <div className="control-row">
+                    <div className="control-group">
+                      <label className="control-label">Gradient Type</label>
+                      <div className="gradient-type-buttons">
+                        <button
+                          onClick={() => {
+                            const gradientSettings = settings.textGradient || defaultTextGradient;
+                            updateSettings({
+                              textGradient: {
+                                ...gradientSettings,
+                                type: 'linear'
+                              }
+                            });
+                          }}
+                          className={`gradient-type-button ${(settings.textGradient?.type || 'linear') === 'linear' ? 'active' : ''}`}
+                        >
+                          Linear
+                        </button>
+                        <button
+                          onClick={() => {
+                            const gradientSettings = settings.textGradient || defaultTextGradient;
+                            updateSettings({
+                              textGradient: {
+                                ...gradientSettings,
+                                type: 'radial'
+                              }
+                            });
+                          }}
+                          className={`gradient-type-button ${(settings.textGradient?.type || 'linear') === 'radial' ? 'active' : ''}`}
+                        >
+                          Radial
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="control-row">
+                    <div className="control-group">
+                      <label className="control-label">Color 1</label>
+                      <ColorPicker
+                        label="Color 1"
+                        color={settings.textGradient?.colors?.[0] || '#ff0000'}
+                        onChange={(color) => {
+                          const gradientSettings = settings.textGradient || defaultTextGradient;
+                          const colors = gradientSettings.colors || ['#ff0000', '#0000ff'];
+                          updateSettings({
+                            textGradient: {
+                              ...gradientSettings,
+                              colors: [color, colors[1]]
+                            }
+                          });
+                        }}
+                        settings={settings}
+                      />
+                    </div>
+                    <div className="control-group">
+                      <label className="control-label">Color 2</label>
+                      <ColorPicker
+                        label="Color 2"
+                        color={settings.textGradient?.colors?.[1] || '#0000ff'}
+                        onChange={(color) => {
+                          const gradientSettings = settings.textGradient || defaultTextGradient;
+                          const colors = gradientSettings.colors || ['#ff0000', '#0000ff'];
+                          updateSettings({
+                            textGradient: {
+                              ...gradientSettings,
+                              colors: [colors[0], color]
+                            }
+                          });
+                        }}
+                        settings={settings}
+                      />
+                    </div>
+                  </div>
+                  {(settings.textGradient?.type || 'linear') === 'linear' && (
+                    <div className="control-row">
+                      <div className="control-group">
+                        <label className="control-label">Angle</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="range"
+                            min="0"
+                            max="360"
+                            value={settings.textGradient?.angle || 0}
+                            onChange={(e) => {
+                              const gradientSettings = settings.textGradient || defaultTextGradient;
+                              updateSettings({
+                                textGradient: {
+                                  ...gradientSettings,
+                                  angle: parseInt(e.target.value)
+                                }
+                              });
+                            }}
+                            className="slider"
+                          />
+                          <span className="control-value">{settings.textGradient?.angle || 0}°</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Signature Panel */}
+        <div className={`tab-panel ${activeTab === 'signature' ? 'active' : ''}`}>
+          <div className="control-section">
+            <div className="section-content">
+              <div className="control-grid">
+                <div className="control-row">
+                  <div className="control-group">
+                    <label className="control-label">Signature Text</label>
+                    <input
+                      type="text"
+                      value={settings.signatureText}
+                      onChange={(e) => updateSettings({ signatureText: e.target.value })}
+                      className="text-input"
+                      placeholder="Enter signature text..."
+                    />
+                  </div>
+                </div>
+                <div className="control-row">
+                  <div className="control-group">
+                    <label className="control-label">Font Family</label>
+                    <select
+                      className="select-input"
+                      value={settings.signatureFontFamily || settings.fontFamily}
+                      onChange={(e) => updateSettings({ signatureFontFamily: e.target.value })}
+                    >
+                      {fonts.map((font) => (
+                        <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+                          {font.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="control-group">
+                    <label className="control-label">Size</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min="20"
+                        max="100"
+                        value={settings.signatureSize}
+                        onChange={(e) => updateSettings({ signatureSize: parseInt(e.target.value) })}
+                        className="slider"
+                      />
+                      <span className="control-value">{settings.signatureSize}px</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="control-row">
+                  <div className="control-group">
+                    <label className="control-label">Color</label>
+                    <ColorPicker
+                      label="Color"
+                      color={settings.signatureColor}
+                      onChange={(color) => updateSettings({ signatureColor: color })}
+                      settings={settings}
+                    />
+                  </div>
+                  <div className="control-group">
+                    <label className="control-label">Alignment</label>
+                    <div className="button-group">
+                      <button
+                        onClick={() => updateSettings({ signatureAlignment: 'left' })}
+                        className={`icon-button ${settings.signatureAlignment === 'left' ? 'active' : ''}`}
+                      >
+                        <AlignLeft size={18} />
+                      </button>
+                      <button
+                        onClick={() => updateSettings({ signatureAlignment: 'center' })}
+                        className={`icon-button ${settings.signatureAlignment === 'center' ? 'active' : ''}`}
+                      >
+                        <AlignCenter size={18} />
+                      </button>
+                      <button
+                        onClick={() => updateSettings({ signatureAlignment: 'right' })}
+                        className={`icon-button ${settings.signatureAlignment === 'right' ? 'active' : ''}`}
+                      >
+                        <AlignRight size={18} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="control-row">
+                  <div className="control-group">
+                    <label className="control-label">Bottom Margin</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min="20"
+                        max="200"
+                        value={settings.signatureBottomMargin || 100}
+                        onChange={(e) => updateSettings({ signatureBottomMargin: parseInt(e.target.value) })}
+                        className="slider"
+                      />
+                      <span className="control-value">{settings.signatureBottomMargin || 100}px</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -1,74 +1,91 @@
-import React, { useState } from 'react';
-import { HexColorPicker } from 'react-colorful';
-import { Modal } from './Modal';
+import React, { useState, useRef, useEffect } from 'react';
+import { HexColorPicker, HexColorInput } from 'react-colorful';
 import { QuoteSettings } from '../types';
+import './ColorPicker.css';
 
 interface ColorPickerProps {
+  label: string;
   color: string;
   onChange: (color: string) => void;
-  label: string;
   settings: QuoteSettings;
 }
 
-export const ColorPicker: React.FC<ColorPickerProps> = ({ color, onChange, label, settings }) => {
+export const ColorPicker: React.FC<ColorPickerProps> = ({ label, color, onChange, settings }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [inputValue, setInputValue] = useState(color.replace('#', ''));
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace('#', '');
-    setInputValue(value);
-    
-    if (/^[0-9A-Fa-f]{6}$/.test(value)) {
-      const newColor = '#' + value;
-      onChange(newColor);
-    }
-  };
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
-  React.useEffect(() => {
-    setInputValue(color.replace('#', ''));
-  }, [color]);
+  // Close the picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      // Only close if clicking outside both the button and popover
+      if (isOpen && 
+          buttonRef.current && 
+          !buttonRef.current.contains(e.target as Node) &&
+          popoverRef.current && 
+          !popoverRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
 
-  const handleBlur = () => {
-    if (/^[0-9A-Fa-f]{6}$/.test(inputValue)) {
-      onChange('#' + inputValue);
-    } else {
-      setInputValue(color.replace('#', ''));
-    }
-  };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  // Validate color
+  const validHexColor = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+  const safeColor = validHexColor.test(color) ? color : '#000000';
 
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-200 mb-2">{label}</label>
-      <div className="flex space-x-2">
+    <div className="color-picker-container">
+      <div className="color-picker-input-row">
         <button
+          ref={buttonRef}
+          className="color-picker-swatch"
+          style={{ backgroundColor: safeColor }}
           onClick={() => setIsOpen(true)}
-          className="w-10 h-10 rounded-lg border border-dark-600 overflow-hidden"
-          style={{ backgroundColor: color }}
+          aria-label={`Select ${label.toLowerCase()} color`}
         />
-        <div className="flex-1 relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">#</span>
-          <input
-            type="text"
-            value={inputValue}
-            onChange={handleInputChange}
-            onBlur={handleBlur}
-            maxLength={6}
-            className="w-full px-3 py-2 pl-7 rounded-lg bg-dark-800 border border-dark-700 text-white text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
-            placeholder="000000"
-          />
-        </div>
+        <HexColorInput
+          color={safeColor}
+          onChange={onChange}
+          prefixed
+          className="color-picker-input"
+        />
       </div>
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium text-white">Choose {label.toLowerCase()}</h3>
-          <HexColorPicker 
-            color={color} 
-            onChange={(newColor) => {
-              onChange(newColor);
-              setInputValue(newColor.replace('#', ''));
-            }} 
-          />
+      
+      {isOpen && (
+        <div className="color-picker-modal-overlay">
+          <div 
+            className="color-picker-modal"
+            ref={popoverRef}
+          >
+            <div className="color-picker-modal-header">
+              <span>{label}</span>
+              <button 
+                className="color-picker-close-btn"
+                onClick={() => setIsOpen(false)}
+                aria-label="Close color picker"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="color-picker-modal-body">
+              <HexColorPicker color={safeColor} onChange={onChange} />
+              <div className="color-picker-inputs">
+                <div className="color-preview" style={{ backgroundColor: safeColor }}></div>
+                <HexColorInput
+                  color={safeColor}
+                  onChange={onChange}
+                  prefixed
+                  className="color-picker-hex-input"
+                  aria-label="Hex color value"
+                />
+              </div>
+            </div>
+          </div>
         </div>
-      </Modal>
+      )}
     </div>
   );
 };
