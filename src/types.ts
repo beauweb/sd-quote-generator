@@ -78,3 +78,24 @@ export interface FontOption {
   value: string;
   category?: string;
 }
+
+export interface KeyboardShortcut {
+  id: string;
+  label: string;
+  key: string;
+  ctrlKey?: boolean;
+  shiftKey?: boolean;
+  altKey?: boolean;
+  metaKey?: boolean;
+  action: () => void;
+  category: 'general' | 'text' | 'style' | 'effects' | 'export';
+  description: string;
+}
+
+export interface ShortcutsContextType {
+  shortcuts: KeyboardShortcut[];
+  registerShortcut: (shortcut: KeyboardShortcut) => void;
+  unregisterShortcut: (id: string) => void;
+  showShortcutsModal: boolean;
+  setShowShortcutsModal: (show: boolean) => void;
+}

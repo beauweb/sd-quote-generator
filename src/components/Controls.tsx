@@ -4,9 +4,11 @@ import { QuoteSettings, TextShadowEffect, TextOutlineEffect, GradientEffect } fr
 import { 
   AlignLeft, AlignCenter, AlignRight, AlignJustify, 
   Bold, Italic, Underline, ChevronDown, ChevronUp,
-  Type, Palette, Box, Circle, Droplet, Layers
+  Type, Palette, Box, Circle, Droplet, Layers,
+  Accessibility
 } from 'lucide-react';
 import './Controls.css';
+import ContrastAnalyzer from './ContrastAnalyzer';
 
 interface ControlsProps {
   settings: QuoteSettings;
@@ -19,6 +21,7 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
   const [isEffectsOpen, setIsEffectsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'text' | 'style' | 'effects' | 'signature'>('text');
   const [fontSize, setFontSize] = useState(settings.fontSize);
+  const [showContrastAnalyzer, setShowContrastAnalyzer] = useState(false);
   
   const fonts = [
     { name: 'Arial', value: 'Arial' },
@@ -224,16 +227,16 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
       </div>
       <div className="space-y-1">
         <label className="block text-sm font-medium text-gray-200">
-          Letter Spacing: {settings.letterSpacing || 0}px
+          Font Size: {settings.fontSize}px
         </label>
         <input
           type="range"
-          min="-2"
-          max="10"
-          value={settings.letterSpacing || 0}
-          onChange={(e) => updateSettings({ letterSpacing: parseInt(e.target.value) })}
+          min="20"
+          max="100"
+          value={settings.fontSize}
+          onChange={(e) => updateSettings({ fontSize: parseInt(e.target.value) })}
           className="w-full accent-purple-600 transition-all hover:accent-purple-500"
-          title={`Adjust letter spacing (${settings.letterSpacing || 0}px)`}
+          title={`Adjust font size (${settings.fontSize}px)`}
         />
       </div>
     </div>
@@ -518,32 +521,6 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
                   />
                 </div>
               </div>
-              {(settings.textGradient?.type || 'linear') === 'linear' && (
-                <div className="control-row">
-                  <div className="control-group">
-                    <label className="control-label">Angle</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="range"
-                        min="0"
-                        max="360"
-                        value={settings.textGradient?.angle || 0}
-                        onChange={(e) => {
-                          const gradientSettings = settings.textGradient || defaultTextGradient;
-                          updateSettings({
-                            textGradient: {
-                              ...gradientSettings,
-                              angle: parseInt(e.target.value)
-                            }
-                          });
-                        }}
-                        className="slider"
-                      />
-                      <span className="control-value">{settings.textGradient?.angle || 0}°</span>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -653,6 +630,14 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
       </div>
     </div>
   );
+
+  // Handle applying contrast suggestions
+  const handleApplySuggestion = (suggestedForeground: string, suggestedBackground: string) => {
+    updateSettings({
+      textColor: suggestedForeground,
+      backgroundColor: suggestedBackground
+    });
+  };
 
   return (
     <div className="controls-container">
@@ -774,17 +759,17 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
                     </div>
                   </div>
                   <div className="control-group">
-                    <label className="control-label">Letter Spacing</label>
+                    <label className="control-label">Font Size</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="range"
-                        min="-2"
-                        max="10"
-                        value={settings.letterSpacing || 0}
-                        onChange={(e) => updateSettings({ letterSpacing: parseInt(e.target.value) })}
+                        min="20"
+                        max="100"
+                        value={settings.fontSize}
+                        onChange={(e) => updateSettings({ fontSize: parseInt(e.target.value) })}
                         className="slider"
                       />
-                      <span className="control-value">{settings.letterSpacing || 0}px</span>
+                      <span className="control-value">{settings.fontSize}px</span>
                     </div>
                   </div>
                 </div>
@@ -813,20 +798,6 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
                       ))}
                     </select>
                   </div>
-                  <div className="control-group">
-                    <label className="control-label">Font Size</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="range"
-                        min="20"
-                        max="100"
-                        value={settings.fontSize}
-                        onChange={(e) => updateSettings({ fontSize: parseInt(e.target.value) })}
-                        className="slider"
-                      />
-                      <span className="control-value">{settings.fontSize}px</span>
-                    </div>
-                  </div>
                 </div>
                 <div className="control-row">
                   <div className="control-group">
@@ -848,6 +819,28 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
                     />
                   </div>
                 </div>
+                <div className="control-row">
+                  <button
+                    onClick={() => setShowContrastAnalyzer(!showContrastAnalyzer)}
+                    className="w-full flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 text-white py-2 px-4 rounded transition-colors"
+                    aria-expanded={showContrastAnalyzer}
+                    aria-controls="contrast-analyzer"
+                  >
+                    <Accessibility size={18} />
+                    <span>{showContrastAnalyzer ? 'Hide' : 'Show'} Accessibility Analysis</span>
+                  </button>
+                </div>
+                {showContrastAnalyzer && (
+                  <div id="contrast-analyzer" className="control-row">
+                    <ContrastAnalyzer
+                      foregroundColor={settings.textColor}
+                      backgroundColor={settings.backgroundColor}
+                      fontSize={settings.fontSize}
+                      isBold={settings.textStyle.bold}
+                      onApplySuggestion={handleApplySuggestion}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1115,32 +1108,6 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
                       />
                     </div>
                   </div>
-                  {(settings.textGradient?.type || 'linear') === 'linear' && (
-                    <div className="control-row">
-                      <div className="control-group">
-                        <label className="control-label">Angle</label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="range"
-                            min="0"
-                            max="360"
-                            value={settings.textGradient?.angle || 0}
-                            onChange={(e) => {
-                              const gradientSettings = settings.textGradient || defaultTextGradient;
-                              updateSettings({
-                                textGradient: {
-                                  ...gradientSettings,
-                                  angle: parseInt(e.target.value)
-                                }
-                              });
-                            }}
-                            className="slider"
-                          />
-                          <span className="control-value">{settings.textGradient?.angle || 0}°</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             )}

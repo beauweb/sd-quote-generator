@@ -364,7 +364,13 @@ export const QuoteCanvas: React.FC<QuoteCanvasProps> = ({
   };
 
   return (
-    <div className="quote-container">
+    <div id="quote-canvas" className="quote-canvas relative" style={{
+      backgroundColor: settings.backgroundColor,
+      width: '100%',
+      aspectRatio: '1 / 1',
+      overflow: 'hidden',
+      position: 'relative',
+    }}>
       <canvas
         ref={canvasRef}
         style={{
@@ -373,7 +379,6 @@ export const QuoteCanvas: React.FC<QuoteCanvasProps> = ({
           maxWidth: '1080px',
           display: 'block',
           margin: '0 auto',
-          backgroundColor: settings.backgroundColor,
           transition: 'all 300ms ease-in-out'
         }}
       />
