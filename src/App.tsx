@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import { QuoteCanvas } from './components/QuoteCanvas';
+import { QuoteCanvas, QuoteCanvasHandle } from './components/QuoteCanvas';
 import { Controls } from './components/Controls';
 import { QuoteSettings } from './types';
 import WebFont from 'webfontloader';
@@ -76,6 +76,9 @@ const AppContent: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const { registerShortcut } = useShortcuts();
 
+  // Add ref to QuoteCanvas
+  const quoteCanvasRef = useRef<QuoteCanvasHandle>(null);
+
   // Define our handlers before using them in the useEffect
   const handleReset = useCallback(() => {
     setSettings(initialSettings);
@@ -84,66 +87,286 @@ const AppContent: React.FC = () => {
   // Export function
   const handleExport = useCallback(async (resolution: number) => {
     try {
-      // Find the actual canvas element within the container
-      const canvasContainer = document.querySelector('.quote-canvas');
-      if (!canvasContainer) {
-        throw new Error("Quote canvas container not found");
-      }
-
-      // Get the actual canvas element
-      const originalCanvas = canvasContainer.querySelector('canvas');
+      // Get the original canvas reference to match its appearance exactly
+      const originalCanvas = quoteCanvasRef.current?.getCanvasElement();
       if (!originalCanvas) {
-        throw new Error("Canvas element not found inside container");
+        throw new Error("Canvas element not found");
       }
 
-      // Create a new canvas for export at the requested resolution
+      // Create a high-resolution canvas for the export
       const exportCanvas = document.createElement('canvas');
-      let exportWidth, exportHeight;
       
-      // Set dimensions based on resolution
+      // Set the exact dimensions based on the requested resolution
       if (resolution === 1920) { // HD
-        exportWidth = exportHeight = 1920;
+        exportCanvas.width = exportCanvas.height = 1920;
       } else if (resolution === 2560) { // 2K
-        exportWidth = exportHeight = 2560;
+        exportCanvas.width = exportCanvas.height = 2560;
       } else if (resolution === 4096) { // 4K
-        exportWidth = exportHeight = 4096;
+        exportCanvas.width = exportCanvas.height = 4096;
       } else {
-        exportWidth = exportHeight = 1080;
+        exportCanvas.width = exportCanvas.height = 1080;
       }
       
-      exportCanvas.width = exportWidth;
-      exportCanvas.height = exportHeight;
-      
-      const exportCtx = exportCanvas.getContext('2d', { alpha: false });
-      if (!exportCtx) {
+      // Get the export canvas context with high-quality settings
+      const ctx = exportCanvas.getContext('2d', { alpha: false });
+      if (!ctx) {
         throw new Error("Could not get export canvas context");
       }
       
-      // Make sure we use crisp rendering settings
-      exportCtx.imageSmoothingEnabled = false;
+      // Ensure we're using the highest quality rendering
+      ctx.imageSmoothingEnabled = false; // Disable smoothing for sharper text
       
-      // Fill with background color first
-      exportCtx.fillStyle = settings.backgroundColor;
-      exportCtx.fillRect(0, 0, exportWidth, exportHeight);
+      // Determine the scale factor for the high-resolution export
+      const scaleFactor = exportCanvas.width / 1080;
       
-      // Calculate scale to resize from original to target size
-      const scale = exportWidth / originalCanvas.width;
+      // Fill the background first (solid color or gradient)
+      if (settings.backgroundGradient) {
+        let gradient;
+        if (settings.backgroundGradient.type === 'linear') {
+          const angle = settings.backgroundGradient.angle || 0;
+          const radian = (angle - 90) * (Math.PI / 180);
+          const centerX = exportCanvas.width / 2;
+          const centerY = exportCanvas.height / 2;
+          const length = Math.max(exportCanvas.width, exportCanvas.height) * 1.5;
+          const startX = centerX - length / 2 * Math.cos(radian);
+          const startY = centerY - length / 2 * Math.sin(radian);
+          const endX = centerX + length / 2 * Math.cos(radian);
+          const endY = centerY + length / 2 * Math.sin(radian);
+          gradient = ctx.createLinearGradient(startX, startY, endX, endY);
+        } else {
+          gradient = ctx.createRadialGradient(
+            exportCanvas.width / 2, exportCanvas.height / 2, 0,
+            exportCanvas.width / 2, exportCanvas.height / 2, exportCanvas.width / 2
+          );
+        }
+        gradient.addColorStop(0, settings.backgroundGradient.colors[0]);
+        gradient.addColorStop(1, settings.backgroundGradient.colors[1]);
+        ctx.fillStyle = gradient;
+            } else {
+        ctx.fillStyle = settings.backgroundColor;
+      }
+      ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
       
-      // Re-render the quote at high resolution instead of scaling up the low-res version
-      // This will redraw all text and graphics at the target resolution for maximum sharpness
-      await renderQuoteToCanvas(exportCtx, settings, exportWidth, exportHeight);
+      // Draw pattern overlay if selected
+      if (settings.pattern) {
+        ctx.globalAlpha = 0.1; // 10% opacity
+        const patternSize = Math.round(20 * scaleFactor);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = Math.max(1, 1 * scaleFactor);
+
+        switch (settings.pattern) {
+          case 'dots':
+            for (let x = patternSize; x < exportCanvas.width; x += patternSize * 2) {
+              for (let y = patternSize; y < exportCanvas.height; y += patternSize * 2) {
+                ctx.beginPath();
+                ctx.arc(x, y, Math.max(1, 1 * scaleFactor), 0, Math.PI * 2);
+                ctx.fill();
+              }
+            }
+            break;
+
+          case 'lines':
+            for (let y = patternSize; y < exportCanvas.height; y += patternSize) {
+              ctx.beginPath();
+              ctx.moveTo(0, y);
+              ctx.lineTo(exportCanvas.width, y);
+              ctx.stroke();
+            }
+            break;
+
+          case 'waves':
+            const amplitude = 5 * scaleFactor;
+            const frequency = 0.02 / scaleFactor; // Adjust frequency to scale
+            for (let y = patternSize; y < exportCanvas.height; y += patternSize * 2) {
+              ctx.beginPath();
+              ctx.moveTo(0, y);
+              for (let x = 0; x < exportCanvas.width; x++) {
+                ctx.lineTo(x, y + Math.sin(x * frequency) * amplitude);
+              }
+              ctx.stroke();
+            }
+            break;
+        }
+        ctx.globalAlpha = 1;
+      }
       
-      // Get high-quality data URL
+      // Scale font and padding proportionally to the resolution
+      const fontSize = Math.round(settings.fontSize * scaleFactor);
+      const padding = Math.round(settings.padding * scaleFactor);
+      
+      // Set text properties
+      const fontWeight = settings.textStyle.bold ? 'bold' : 'normal';
+      const fontStyle = settings.textStyle.italic ? 'italic' : 'normal';
+      
+      // Preload fonts to ensure they're available for rendering
+      await Promise.all([
+        document.fonts.load(`${fontStyle} ${fontWeight} ${fontSize}px ${settings.fontFamily}`),
+        document.fonts.load(`${Math.round(settings.signatureSize * scaleFactor)}px ${settings.signatureFontFamily || settings.fontFamily}`)
+      ]).catch(e => {
+        console.warn('Font loading warning:', e);
+      });
+      
+      ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${settings.fontFamily}`;
+      
+      // Apply text color or gradient
+      if (settings.textGradient && settings.textGradient.enabled) {
+        const textGradient = ctx.createLinearGradient(0, 0, exportCanvas.width, 0);
+        textGradient.addColorStop(0, settings.textGradient.colors[0]);
+        textGradient.addColorStop(1, settings.textGradient.colors[1]);
+        ctx.fillStyle = textGradient;
+      } else {
+        ctx.fillStyle = settings.textColor;
+      }
+      
+      ctx.textAlign = settings.textAlignment as CanvasTextAlign;
+      
+      // Word wrap function - adapted to high resolution
+      const wrapText = (text: string, maxWidth: number) => {
+        const words = text.split(' ');
+        const lines: { text: string; words: string[] }[] = [];
+        let currentLine = words[0];
+        let currentWords = [words[0]];
+
+        for (let i = 1; i < words.length; i++) {
+          const word = words[i];
+          const width = ctx.measureText(currentLine + " " + word).width;
+          
+          if (width < maxWidth) {
+            currentLine += " " + word;
+            currentWords.push(word);
+          } else {
+            lines.push({ text: currentLine, words: currentWords });
+            currentLine = word;
+            currentWords = [word];
+          }
+        }
+        lines.push({ text: currentLine, words: currentWords });
+        return lines;
+      };
+      
+      // Configure text shadow if enabled - CRITICAL for matching preview appearance
+      if (settings.textShadow && settings.textShadow.enabled) {
+        // Important: The shadow needs to be precisely scaled to match the preview
+        ctx.shadowColor = settings.textShadow.color; 
+        // Use exact scale factor for blur - this is crucial for matching the preview
+        ctx.shadowBlur = Math.round(settings.textShadow.blur * scaleFactor);
+        ctx.shadowOffsetX = Math.round(settings.textShadow.offsetX * scaleFactor);
+        ctx.shadowOffsetY = Math.round(settings.textShadow.offsetY * scaleFactor);
+      } else {
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+      }
+      
+      // Configure text outline if enabled
+      if (settings.textOutline && settings.textOutline.enabled) {
+        // Use exact outline width for visual match
+        ctx.lineWidth = Math.max(1, Math.round(settings.textOutline.width * scaleFactor));
+        ctx.strokeStyle = settings.textOutline.color;
+        ctx.lineJoin = 'round'; // Use round joins for smoother outlines
+        ctx.miterLimit = 2;
+      }
+      
+      // Draw the quote text
+      const maxWidth = exportCanvas.width - (padding * 2);
+      const lines = wrapText(settings.quoteText, maxWidth);
+      const lineHeight = fontSize * (settings.lineHeight || 1.2);
+      
+      // Calculate starting y position
+      let y = (exportCanvas.height - (lines.length * lineHeight)) / 2;
+      
+      // Draw text with all effects applied
+      lines.forEach(line => {
+        if (settings.textAlignment === 'justify' && line.words.length > 1) {
+          // Handle justified text
+          const totalSpacing = maxWidth - ctx.measureText(line.text.replace(/\s/g, '')).width;
+          const spaceBetween = totalSpacing / (line.words.length - 1);
+          
+          let x = padding;
+          line.words.forEach((word, index) => {
+            // For each word, draw with correct effects order
+            if (settings.textOutline && settings.textOutline.enabled) {
+              // Draw outline first (underneath fill)
+              ctx.strokeText(word, x, y);
+            }
+            
+            // Then draw the fill text on top
+            ctx.fillText(word, x, y);
+            
+            // Move to next word position
+            x += ctx.measureText(word).width + spaceBetween;
+          });
+        } else {
+          // Handle normal aligned text
+          let x;
+          switch(settings.textAlignment) {
+            case 'left':
+              x = padding;
+              break;
+            case 'right':
+              x = exportCanvas.width - padding;
+              break;
+            default:
+              x = exportCanvas.width / 2;
+          }
+          
+          // Apply effects in the correct order to match preview
+          if (settings.textOutline && settings.textOutline.enabled) {
+            // Draw outline first (underneath fill)
+            ctx.strokeText(line.text, x, y);
+          }
+          
+          // Draw fill text on top
+          ctx.fillText(line.text, x, y);
+        }
+        y += lineHeight;
+      });
+      
+      // Reset shadow for the signature
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      
+      // Draw signature
+      const signatureSize = Math.round(settings.signatureSize * scaleFactor);
+      const bottomMargin = Math.round((settings.signatureBottomMargin || 100) * scaleFactor);
+      
+      ctx.font = `${signatureSize}px ${settings.signatureFontFamily || settings.fontFamily}`;
+      ctx.fillStyle = settings.signatureColor;
+      ctx.textAlign = settings.signatureAlignment as CanvasTextAlign;
+      
+      // Calculate the signature position
+      let signatureX;
+      switch(settings.signatureAlignment) {
+        case 'left':
+          signatureX = padding;
+          break;
+        case 'right':
+          signatureX = exportCanvas.width - padding;
+          break;
+        default:
+          signatureX = exportCanvas.width / 2;
+      }
+      
+      // Draw the signature text
+      const signatureY = exportCanvas.height - bottomMargin;
+      ctx.fillText(settings.signatureText, signatureX, signatureY);
+      
+      // Get the high-resolution image data with maximum quality
       const dataUrl = exportCanvas.toDataURL('image/png', 1.0);
       
-      // Create a downloadable link
+      // Create the download link
       const link = document.createElement('a');
       link.download = `quote-${resolution}px-${Date.now()}.png`;
       link.href = dataUrl;
       
-      // Append to document, click, and remove
+      // Trigger the download
       document.body.appendChild(link);
       link.click();
+
+      // Clean up
       setTimeout(() => {
         document.body.removeChild(link);
       }, 100);
@@ -154,230 +377,25 @@ const AppContent: React.FC = () => {
     }
   }, [settings]);
 
-  // Helper function to render the quote to a canvas context at a specific size
-  const renderQuoteToCanvas = async (
-    ctx: CanvasRenderingContext2D,
+  // Helper function to render the canvas content
+  const renderCanvas = (
+    canvas: HTMLCanvasElement,
     settings: QuoteSettings,
-    width: number,
-    height: number
-  ): Promise<void> => {
-    // Create background gradient or solid color
-    if (settings.backgroundGradient) {
-      let gradient;
-      if (settings.backgroundGradient.type === 'linear') {
-        const angle = settings.backgroundGradient.angle || 0;
-        const radian = (angle - 90) * (Math.PI / 180);
-        const length = Math.abs(width * Math.cos(radian)) + Math.abs(height * Math.sin(radian));
-        const centerX = width / 2;
-        const centerY = height / 2;
-        const startX = centerX - length / 2 * Math.cos(radian);
-        const startY = centerY - length / 2 * Math.sin(radian);
-        const endX = centerX + length / 2 * Math.cos(radian);
-        const endY = centerY + length / 2 * Math.sin(radian);
-        gradient = ctx.createLinearGradient(startX, startY, endX, endY);
-      } else {
-        gradient = ctx.createRadialGradient(
-          width / 2, height / 2, 0,
-          width / 2, height / 2, width / 2
-        );
-      }
-      gradient.addColorStop(0, settings.backgroundGradient.colors[0]);
-      gradient.addColorStop(1, settings.backgroundGradient.colors[1]);
-      ctx.fillStyle = gradient;
-    } else {
-      ctx.fillStyle = settings.backgroundColor;
-    }
-    ctx.fillRect(0, 0, width, height);
-
-    // Draw pattern overlay if selected
-    if (settings.pattern) {
-      ctx.globalAlpha = 0.1; // 10% opacity
-      const patternSize = 20 * (width / 1080);
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = Math.max(1, width / 1080);
-
-      switch (settings.pattern) {
-        case 'dots':
-          for (let x = patternSize; x < width; x += patternSize * 2) {
-            for (let y = patternSize; y < height; y += patternSize * 2) {
-              ctx.beginPath();
-              ctx.arc(x, y, Math.max(1, width / 1080), 0, Math.PI * 2);
-              ctx.fill();
-            }
-          }
-          break;
-
-        case 'lines':
-          for (let y = patternSize; y < height; y += patternSize) {
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(width, y);
-            ctx.stroke();
-          }
-          break;
-
-        case 'waves':
-          const amplitude = 5 * (width / 1080);
-          const frequency = 0.02;
-          for (let y = patternSize; y < height; y += patternSize * 2) {
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            for (let x = 0; x < width; x++) {
-              ctx.lineTo(x, y + Math.sin(x * frequency) * amplitude);
-            }
-            ctx.stroke();
-          }
-          break;
-      }
-      ctx.globalAlpha = 1;
-    }
-
-    // Set text properties
-    const fontSize = (settings.fontSize * width) / 1080;
-    const padding = (settings.padding * width) / 1080;
+    size: number
+  ) => {
+    const ctx = canvas.getContext('2d', { alpha: false });
+    if (!ctx) return;
     
-    const fontWeight = settings.textStyle.bold ? 'bold' : 'normal';
-    const fontStyle = settings.textStyle.italic ? 'italic' : 'normal';
+    // Apply the settings to render the canvas
+    // This code should match exactly what's in QuoteCanvas component
+    // (This rendering logic would ideally be extracted to a shared function)
     
-    // Wait for the font to load (important for accurate text rendering)
-    await document.fonts.load(`${fontStyle} ${fontWeight} ${fontSize}px ${settings.fontFamily}`);
+    // Background
+    ctx.fillStyle = settings.backgroundColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${settings.fontFamily}`;
-    
-    // Apply text styling
-    if (settings.textGradient && settings.textGradient.enabled) {
-      const gradient = ctx.createLinearGradient(0, 0, width, 0);
-      gradient.addColorStop(0, settings.textGradient.colors[0]);
-      gradient.addColorStop(1, settings.textGradient.colors[1]);
-      ctx.fillStyle = gradient;
-    } else {
-      ctx.fillStyle = settings.textColor;
-    }
-    
-    ctx.textAlign = settings.textAlignment as CanvasTextAlign;
-
-    // Enhanced word wrap function with justify support
-    const wrapText = (text: string, maxWidth: number) => {
-      const words = text.split(' ');
-      const lines: { text: string; words: string[] }[] = [];
-      let currentLine = words[0];
-      let currentWords = [words[0]];
-
-      for (let i = 1; i < words.length; i++) {
-        const word = words[i];
-        const width = ctx.measureText(currentLine + " " + word).width;
-        
-        if (width < maxWidth) {
-          currentLine += " " + word;
-          currentWords.push(word);
-        } else {
-          lines.push({ text: currentLine, words: currentWords });
-          currentLine = word;
-          currentWords = [word];
-        }
-      }
-      lines.push({ text: currentLine, words: currentWords });
-      return lines;
-    };
-
-    // Apply text shadow if enabled
-    if (settings.textShadow && settings.textShadow.enabled) {
-      const { color, blur, offsetX, offsetY } = settings.textShadow;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = blur * (width / 1080);
-      ctx.shadowOffsetX = offsetX * (width / 1080);
-      ctx.shadowOffsetY = offsetY * (width / 1080);
-    }
-
-    // Draw quote text with justified alignment
-    const maxWidth = width - (padding * 2);
-    const lines = wrapText(settings.quoteText, maxWidth);
-    const lineHeight = fontSize * (settings.lineHeight || 1.2);
-    
-    // Calculate the starting y position based on the number of lines
-    let y = (height - (lines.length * lineHeight)) / 2;
-    
-    // Draw text normally (we'll skip curved text implementation for simplicity)
-    lines.forEach(line => {
-      if (settings.textAlignment === 'justify' && line.words.length > 1) {
-        // Calculate spacing for justified text
-        const totalSpacing = maxWidth - ctx.measureText(line.text.replace(/\s/g, '')).width;
-        const spaceBetween = totalSpacing / (line.words.length - 1);
-        
-        let x = padding;
-        line.words.forEach((word, index) => {
-          // Draw the word
-          ctx.fillText(word, x, y);
-          
-          // Apply text outline if enabled
-          if (settings.textOutline && settings.textOutline.enabled) {
-            ctx.lineWidth = settings.textOutline.width * (width / 1080);
-            ctx.strokeStyle = settings.textOutline.color;
-            ctx.strokeText(word, x, y);
-          }
-          
-          // Move to the next word position
-          x += ctx.measureText(word).width + spaceBetween;
-        });
-      } else {
-        let x;
-        switch(settings.textAlignment) {
-          case 'left':
-            x = padding;
-            break;
-          case 'right':
-            x = width - padding;
-            break;
-          default:
-            x = width / 2;
-        }
-        
-        // Draw the line of text
-        ctx.fillText(line.text, x, y);
-        
-        // Apply text outline if enabled
-        if (settings.textOutline && settings.textOutline.enabled) {
-          ctx.lineWidth = settings.textOutline.width * (width / 1080);
-          ctx.strokeStyle = settings.textOutline.color;
-          ctx.strokeText(line.text, x, y);
-        }
-      }
-      y += lineHeight;
-    });
-
-    // Reset shadow settings before drawing signature
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-
-    // Draw signature
-    const signatureSize = Math.round((settings.signatureSize * width) / 1080);
-    const bottomMargin = Math.round((settings.signatureBottomMargin || 100) * width / 1080);
-    
-    // Wait for signature font to load
-    await document.fonts.load(`${signatureSize}px ${settings.signatureFontFamily || settings.fontFamily}`);
-    
-    ctx.font = `${signatureSize}px ${settings.signatureFontFamily || settings.fontFamily}`;
-    ctx.fillStyle = settings.signatureColor;
-    ctx.textAlign = settings.signatureAlignment as CanvasTextAlign;
-    
-    // Calculate signature position
-    let signatureX;
-    switch(settings.signatureAlignment) {
-      case 'left':
-        signatureX = Math.round(padding);
-        break;
-      case 'right':
-        signatureX = Math.round(width - padding);
-        break;
-      default:
-        signatureX = Math.round(width / 2);
-    }
-    
-    // Position signature
-    const signatureY = Math.round(height - bottomMargin);
-    ctx.fillText(settings.signatureText, signatureX, signatureY);
+    // Apply all the text effects, gradients, etc.
+    // ...rendering code...
   };
 
   // Handle updating settings with basic history
@@ -584,66 +602,66 @@ const AppContent: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen h-screen flex flex-col overflow-hidden bg-background text-text-primary">
-      <Header />
-      <main className="flex-1 overflow-hidden py-6">
-        <div className="h-full max-w-7xl mx-auto px-4 overflow-hidden">
-          <div className="h-full overflow-hidden">
-            <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Preview Section */}
-              <div className="lg:h-full overflow-auto">
-                <div className="bg-[rgb(12_12_12/0.8)] backdrop-blur-md p-6 rounded-lg shadow-lg border border-dark-700">
-                  <QuoteCanvas settings={settings} />
-                  <div className="mt-4">
-                    <ExportButton settings={settings} onExport={handleExport} />
+      <div className="min-h-screen h-screen flex flex-col overflow-hidden bg-background text-text-primary">
+        <Header />
+        <main className="flex-1 overflow-hidden py-6">
+          <div className="h-full max-w-7xl mx-auto px-4 overflow-hidden">
+            <div className="h-full overflow-hidden">
+              <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Preview Section */}
+                <div className="lg:h-full overflow-auto">
+                  <div className="bg-[rgb(12_12_12/0.8)] backdrop-blur-md p-6 rounded-lg shadow-lg border border-dark-700">
+                    <QuoteCanvas ref={quoteCanvasRef} settings={settings} />
+                    <div className="mt-4">
+                      <ExportButton settings={settings} onExport={handleExport} />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Controls Section */}
-              <div className="lg:h-full overflow-auto">
-                <div className="h-full space-y-6">
-                  <div className="bg-surface/80 backdrop-blur-md p-4 rounded-lg border border-border">
-                    <div className="flex items-center gap-2 mb-4">
-                      <button
-                        onClick={undo}
-                        disabled={!canUndo}
-                        className={`p-2 rounded-lg ${canUndo ? 'bg-primary hover:bg-opacity-90' : 'bg-surface-light text-disabled cursor-not-allowed'} transition-colors`}
-                        title="Undo (Ctrl+Z)"
+                {/* Controls Section */}
+                <div className="lg:h-full overflow-auto">
+                  <div className="h-full space-y-6">
+                    <div className="bg-surface/80 backdrop-blur-md p-4 rounded-lg border border-border">
+                      <div className="flex items-center gap-2 mb-4">
+                        <button
+                          onClick={undo}
+                          disabled={!canUndo}
+                          className={`p-2 rounded-lg ${canUndo ? 'bg-primary hover:bg-opacity-90' : 'bg-surface-light text-disabled cursor-not-allowed'} transition-colors`}
+                          title="Undo (Ctrl+Z)"
                         aria-label="Undo last action"
-                      >
-                        <Undo2 size={20} />
-                      </button>
-                      <button
-                        onClick={redo}
-                        disabled={!canRedo}
-                        className={`p-2 rounded-lg ${canRedo ? 'bg-primary hover:bg-opacity-90' : 'bg-surface-light text-disabled cursor-not-allowed'} transition-colors`}
-                        title="Redo (Ctrl+Y or Ctrl+Shift+Z)"
+                        >
+                          <Undo2 size={20} />
+                        </button>
+                        <button
+                          onClick={redo}
+                          disabled={!canRedo}
+                          className={`p-2 rounded-lg ${canRedo ? 'bg-primary hover:bg-opacity-90' : 'bg-surface-light text-disabled cursor-not-allowed'} transition-colors`}
+                          title="Redo (Ctrl+Y or Ctrl+Shift+Z)"
                         aria-label="Redo last undone action"
-                      >
-                        <Redo2 size={20} />
-                      </button>
-                      <div className="flex-1" />
-                      <button
-                        onClick={handleReset}
-                        className="p-2 rounded-lg bg-error hover:bg-opacity-90 transition-colors"
+                        >
+                          <Redo2 size={20} />
+                        </button>
+                        <div className="flex-1" />
+                        <button
+                          onClick={handleReset}
+                          className="p-2 rounded-lg bg-error hover:bg-opacity-90 transition-colors"
                         title="Reset to default settings (Ctrl+Shift+R)"
                         aria-label="Reset to default settings"
-                      >
-                        <RotateCcw size={20} />
-                      </button>
-                    </div>
+                        >
+                          <RotateCcw size={20} />
+                        </button>
+                      </div>
                     <Controls settings={settings} onSettingsChange={handleSettingsChange} />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </main>
-      <Footer />
+        </main>
+        <Footer />
       <ShortcutsModal />
-    </div>
+      </div>
   );
 };
 

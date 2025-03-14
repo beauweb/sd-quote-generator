@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { QuoteSettings, TextShadowEffect, TextOutlineEffect, GradientEffect } from '../types';
 
 interface QuoteCanvasProps {
@@ -6,11 +6,21 @@ interface QuoteCanvasProps {
   canvasSize?: number;
 }
 
-export const QuoteCanvas: React.FC<QuoteCanvasProps> = ({ 
+// Add a handle type for imperative access from parent components
+export interface QuoteCanvasHandle {
+  getCanvasElement: () => HTMLCanvasElement | null;
+}
+
+export const QuoteCanvas = forwardRef<QuoteCanvasHandle, QuoteCanvasProps>(({ 
   settings,
   canvasSize = 1080
-}) => {
+}, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Expose the canvas element to parent components
+  useImperativeHandle(ref, () => ({
+    getCanvasElement: () => canvasRef.current
+  }));
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -27,6 +37,9 @@ export const QuoteCanvas: React.FC<QuoteCanvasProps> = ({
     // Apply scale transformation and save the context state
     ctx.save();
     ctx.scale(scale, scale);
+
+    // IMPORTANT: Disable image smoothing for sharper text
+    ctx.imageSmoothingEnabled = false;
 
     // Create background gradient or solid color
     if (settings.backgroundGradient) {
@@ -116,6 +129,29 @@ export const QuoteCanvas: React.FC<QuoteCanvasProps> = ({
     
     ctx.textAlign = settings.textAlignment as CanvasTextAlign;
 
+    // Apply text shadow if enabled
+    if (settings.textShadow && settings.textShadow.enabled) {
+      const { color, blur, offsetX, offsetY } = settings.textShadow;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = blur;
+      ctx.shadowOffsetX = offsetX;
+      ctx.shadowOffsetY = offsetY;
+    } else {
+      // Reset shadow if not enabled
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+    }
+
+    // Configure outline if enabled
+    if (settings.textOutline && settings.textOutline.enabled) {
+      ctx.lineWidth = settings.textOutline.width;
+      ctx.strokeStyle = settings.textOutline.color;
+      ctx.lineJoin = 'round'; // Use round joins for smoother outlines
+      ctx.miterLimit = 2;
+    }
+
     // Enhanced word wrap function with justify support
     const wrapText = (text: string, maxWidth: number) => {
       const words = text.split(' ');
@@ -140,15 +176,6 @@ export const QuoteCanvas: React.FC<QuoteCanvasProps> = ({
       return lines;
     };
 
-    // Apply text shadow if enabled
-    if (settings.textShadow && settings.textShadow.enabled) {
-      const { color, blur, offsetX, offsetY } = settings.textShadow;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = blur;
-      ctx.shadowOffsetX = offsetX;
-      ctx.shadowOffsetY = offsetY;
-    }
-
     // Draw quote text with justified alignment
     const maxWidth = canvas.width - (padding * 2);
     const lines = wrapText(settings.quoteText, maxWidth);
@@ -170,22 +197,16 @@ export const QuoteCanvas: React.FC<QuoteCanvasProps> = ({
           
           let x = padding;
           line.words.forEach((word, index) => {
-            if (settings.letterSpacing) {
-              // Improved letter spacing for complex scripts
-              const chars = Array.from(word); // Properly split Unicode characters
-              for (let i = 0; i < chars.length; i++) {
-                drawTextWithEffects(ctx, chars[i], x, y, settings);
-                const charWidth = ctx.measureText(chars[i]).width;
-                x += charWidth + (i < chars.length - 1 ? settings.letterSpacing : 0);
-              }
-              // Add word spacing
-              if (index < line.words.length - 1) {
-                x += spaceBetween;
-              }
-            } else {
-              drawTextWithEffects(ctx, word, x, y, settings);
-              x += ctx.measureText(word).width + spaceBetween;
+            // IMPORTANT: Draw outline first, then fill - this matches the export ordering
+            if (settings.textOutline && settings.textOutline.enabled) {
+              ctx.strokeText(word, x, y);
             }
+
+            // Now draw the text fill
+            ctx.fillText(word, x, y);
+            
+            // Move to the next word position
+            x += ctx.measureText(word).width + spaceBetween;
           });
         } else {
           let x;
@@ -200,28 +221,13 @@ export const QuoteCanvas: React.FC<QuoteCanvasProps> = ({
               x = canvas.width / 2;
           }
           
-          if (settings.letterSpacing) {
-            // For non-justified text with letter spacing
-            const chars = Array.from(line.text); // Properly split Unicode characters
-            const totalWidth = chars.reduce((width, char) => {
-              return width + ctx.measureText(char).width;
-            }, 0) + (chars.length - 1) * settings.letterSpacing;
-            
-            // Adjust starting position for center and right alignment
-            if (settings.textAlignment === 'center') {
-              x -= totalWidth / 2;
-            } else if (settings.textAlignment === 'right') {
-              x -= totalWidth;
-            }
-            
-            // Draw each character with spacing
-            for (let i = 0; i < chars.length; i++) {
-              drawTextWithEffects(ctx, chars[i], x, y, settings);
-              x += ctx.measureText(chars[i]).width + settings.letterSpacing;
-            }
-          } else {
-            drawTextWithEffects(ctx, line.text, x, y, settings);
+          // IMPORTANT: Draw outline first, then fill - this matches the export ordering
+          if (settings.textOutline && settings.textOutline.enabled) {
+            ctx.strokeText(line.text, x, y);
           }
+          
+          // Now draw the text fill
+          ctx.fillText(line.text, x, y);
         }
         y += lineHeight;
       });
@@ -384,4 +390,4 @@ export const QuoteCanvas: React.FC<QuoteCanvasProps> = ({
       />
     </div>
   );
-};
+});

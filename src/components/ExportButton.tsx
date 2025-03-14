@@ -33,8 +33,7 @@ export const ExportButton: React.FC<ExportButtonProps> = ({ settings, onExport }
   };
 
   return (
-    <div>
-      <h3 className="text-white text-lg font-medium mb-2">Export Image</h3>
+    <div>      
       <div className="grid grid-cols-3 gap-3">
         {resolutions.map((res) => {
           const isLoading = exportingSize === res.size;
