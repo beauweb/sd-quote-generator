@@ -1,37 +1,39 @@
 const { theme } = require('./src/theme');
 
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
-  ],
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        background: theme.colors.background,
-        surface: theme.colors.surface,
-        primary: theme.colors.primary,
-        accent: theme.colors.accent,
-        border: theme.colors.border,
-        hover: theme.colors.hover,
-        active: theme.colors.active,
-        text: theme.colors.text,
-        dark: {
-          50: '#f6f6f7',
-          100: '#e1e3e6',
-          200: '#c2c5cb',
-          300: '#9ca1ab',
-          400: '#767d8a',
-          500: '#5c6370',
-          600: '#484d59',
-          700: '#1e1e1e',
-          800: '#151515',
-          900: '#0c0c0c',
-          950: '#000000',
-        },
-        'surface-light': '#3a3a3a',
+        'dark-900': '#0f1115',
+        'dark-800': '#151822',
+        'dark-700': '#1c202b',
+        'dark-600': '#252a37',
+        'dark-500': '#2e3342',
+        'background': '#080808',
+        'surface': '#0f1115',
+        'surface-light': '#151822',
+        'border': '#252a37',
+        'primary': '#7e58ff',
+        'secondary': '#ff58a6',
+        'error': '#ff5858',
+        'text-primary': '#ffffff',
+        'text-secondary': '#9ca3af',
+        'disabled': '#4b5563',
       },
+      animation: {
+        'spin': 'spin 4s linear infinite',
+        'pulse-tile': 'pulseTile 8s infinite',
+      },
+      keyframes: {
+        pulseTile: {
+          '0%, 12.5%, 100%': { opacity: 1 },
+          '25%, 82.5%': { opacity: 0 },
+        }
+      }
     },
   },
   plugins: [],
-}
+};

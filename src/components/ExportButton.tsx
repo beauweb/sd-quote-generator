@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { QuoteSettings } from '../types';
 import { Download, Loader } from 'lucide-react';
+import { PulseCard } from './ui/PulseCard';
 
 interface ExportButtonProps {
   settings: QuoteSettings;
@@ -39,29 +40,21 @@ export const ExportButton: React.FC<ExportButtonProps> = ({ settings, onExport }
           const isLoading = exportingSize === res.size;
           
           return (
-            <button
+            <PulseCard
               key={res.size}
               onClick={() => handleExport(res.size)}
               disabled={exportingSize !== null}
-              className={`
-                bg-dark-800 hover:bg-dark-700 
-                text-white px-4 py-3 rounded-lg 
-                flex flex-col items-center justify-center 
-                transition-colors 
-                disabled:opacity-70 
-                ${isLoading ? 'bg-dark-700' : ''}
-              `}
-            >
-              <div className="flex items-center gap-2">
-                {isLoading ? (
-                  <Loader className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Download className="w-5 h-5" />
-                )}
-                <span>{isLoading ? "Downloading..." : res.label}</span>
-              </div>
-              <span className="text-xs text-gray-400 mt-1">{res.description}</span>
-            </button>
+              icon={isLoading ? <Loader className="animate-spin" /> : <Download />}
+              title={isLoading ? "Downloading..." : res.label}
+              description={res.description}
+              variant={res.label === "HD" ? "blue" : res.label === "2K" ? "purple" : "amber"}
+              size="sm"
+              glowEffect={true}
+              interactive={true}
+              showGridLines={true}
+              hoverScale={1.03}
+              isActive={isLoading}
+            />
           );
         })}
       </div>

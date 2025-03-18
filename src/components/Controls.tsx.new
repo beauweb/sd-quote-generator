@@ -1,0 +1,17 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { ColorPicker } from './ColorPicker';
+import { QuoteSettings, TextShadowEffect, TextOutlineEffect, GradientEffect } from '../types';
+import { 
+  AlignLeft, AlignCenter, AlignRight, AlignJustify, 
+  Bold, Italic, Underline, ChevronDown, ChevronUp,
+  Type, Palette, Box, Circle, Droplet, Layers,
+  Accessibility, Square
+} from 'lucide-react';
+import './Controls.css';
+import ContrastAnalyzer from './ContrastAnalyzer';
+import { PulseCard } from './ui/PulseCard';
+
+interface ControlsProps {
+  settings: QuoteSettings;
+  onSettingsChange: (settings: QuoteSettings) => void;
+} 

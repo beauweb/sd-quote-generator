@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 html, body {
-  @apply bg-dark-950 text-white;
+  @apply bg-background text-white;
   height: 100%;
   margin: 0;
   padding: 0;

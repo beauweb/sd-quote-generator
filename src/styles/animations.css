@@ -1,0 +1,102 @@
+/* Custom animations for SD Quote Generator */
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulseTile {
+  0%, 12.5%, 100% {
+    opacity: 1;
+  }
+  25%, 82.5% {
+    opacity: 0;
+  }
+}
+
+.animate-spin {
+  animation: spin 4s linear infinite;
+}
+
+.animate-pulse-tile {
+  animation: pulseTile 8s infinite;
+}
+
+/* Moving border effect for hover states */
+.border-animation {
+  position: relative;
+  overflow: hidden;
+}
+
+.border-animation::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    transparent 340deg,
+    currentColor 360deg
+  );
+  animation: spin 4s linear infinite;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.border-animation:hover::before {
+  opacity: 1;
+}
+
+/* Pulse effect for active elements */
+.pulse-effect {
+  position: relative;
+}
+
+.pulse-effect::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 3px var(--pulse-color, rgba(126, 88, 255, 0.4));
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+}
+
+/* Grid animation for card backgrounds */
+.grid-animation {
+  position: relative;
+}
+
+.grid-animation::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 25px 25px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.grid-animation:hover::before {
+  opacity: 1;
+} 

@@ -19,6 +19,7 @@ import { Footer } from './components/Footer';
 import { ShortcutsProvider } from './contexts/ShortcutsContext';
 import ShortcutsModal from './components/ShortcutsModal';
 import { useShortcuts } from './contexts/ShortcutsContext';
+import './styles/animations.css';
 
 // Wrapper component to register shortcuts inside the provider context
 const AppContent: React.FC = () => {
