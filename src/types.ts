@@ -47,6 +47,8 @@ export interface TextShadowEffect {
   blur: number;
   offsetX: number;
   offsetY: number;
+  intensity?: number;
+  style?: 'normal' | 'multiple' | 'glow';
 }
 
 export interface TextOutlineEffect {
@@ -98,4 +100,22 @@ export interface ShortcutsContextType {
   unregisterShortcut: (id: string) => void;
   showShortcutsModal: boolean;
   setShowShortcutsModal: (show: boolean) => void;
+}
+
+export interface SocialMediaPreset {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+  description: string;
+  icon?: string;
+}
+
+export interface ExportOptions {
+  format: 'png' | 'jpeg' | 'svg';
+  width: number;
+  height: number;
+  quality?: number;
+  transparent?: boolean;
+  includeBackground?: boolean;
 }
