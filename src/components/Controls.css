@@ -394,4 +394,343 @@
 
 .gap-2 {
   gap: 8px;
+}
+
+/* Mobile Responsive Enhancements */
+@media (max-width: 768px) {
+  .controls-container {
+    padding: 0.5rem;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .tabs-container {
+    position: sticky;
+    top: 0;
+    background: var(--bg-secondary);
+    z-index: 10;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.5rem;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+    min-height: 44px; /* Touch-friendly minimum */
+  }
+
+  .tab span {
+    display: none; /* Hide text labels on mobile */
+  }
+
+  .tab svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .control-section {
+    margin-bottom: 1rem;
+  }
+
+  .section-header {
+    padding: 0.75rem;
+  }
+
+  .section-content {
+    padding: 0.75rem;
+  }
+
+  .control-group {
+    margin-bottom: 1rem;
+  }
+
+  .control-label {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .text-input,
+  .textarea,
+  .select-input {
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 0.75rem;
+    min-height: 44px; /* Touch-friendly */
+  }
+
+  .textarea {
+    min-height: 80px;
+  }
+
+  .control-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .control-row .control-group {
+    flex: 1;
+    min-width: 100%;
+  }
+
+  .color-picker-container {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .color-input-group {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .slider-container {
+    padding: 0.5rem 0;
+  }
+
+  .slider {
+    width: 100%;
+  }
+
+  .alignment-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+  }
+
+  .alignment-button {
+    min-height: 44px;
+    padding: 0.75rem;
+  }
+
+  .style-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .style-button {
+    min-height: 44px;
+    padding: 0.75rem;
+  }
+
+  /* Mobile-specific improvements */
+  .mobile-optimized-controls {
+    display: block;
+  }
+
+  .desktop-only {
+    display: none;
+  }
+
+  /* Swipe gestures for tabs */
+  .tabs-container {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .tabs-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Better touch targets */
+  .section-toggle {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.75rem;
+  }
+
+  /* Improved spacing for mobile */
+  .divider {
+    margin: 1rem 0;
+  }
+
+  /* Collapsible sections for mobile */
+  .mobile-collapsible {
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+  }
+
+  .mobile-collapsible .section-header {
+    background: var(--bg-tertiary);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .mobile-collapsible .section-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  .mobile-collapsible.open .section-content {
+    max-height: 1000px;
+  }
+
+  /* Background Image Controls Styles */
+  .upload-area {
+    padding: 1.5rem;
+  }
+
+  .upload-button {
+    width: 100%;
+    padding: 1rem;
+  }
+
+  .preview-image {
+    height: 100px;
+  }
+
+  .remove-image {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .controls-container {
+    padding: 1rem;
+  }
+
+  .control-row {
+    gap: 1rem;
+  }
+
+  .control-row .control-group {
+    flex: 1;
+  }
+
+  .tab span {
+    display: inline;
+  }
+}
+
+/* Large screen optimizations */
+@media (min-width: 1025px) {
+  .mobile-optimized-controls {
+    display: none;
+  }
+
+  .desktop-only {
+    display: block;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .control-group {
+    border: 2px solid var(--border-color);
+    padding: 0.5rem;
+    border-radius: 4px;
+  }
+
+  .tab {
+    border: 2px solid transparent;
+  }
+
+  .tab.active {
+    border-color: var(--accent-color);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-collapsible .section-content {
+    transition: none;
+  }
+
+  .tab-panel {
+    transition: none;
+  }
+}
+
+/* Background Image Controls Styles */
+.upload-area {
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  background: var(--bg-tertiary);
+  transition: border-color 0.2s ease;
+}
+
+.upload-area:hover {
+  border-color: var(--accent-color);
+}
+
+.upload-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-height: 44px;
+}
+
+.upload-button:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.upload-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.upload-hint {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.background-image-controls {
+  space-y: 1rem;
+}
+
+.image-preview {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+}
+
+.preview-image {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  display: block;
+}
+
+.remove-image {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.remove-image:hover {
+  background: rgba(0, 0, 0, 0.9);
 } 

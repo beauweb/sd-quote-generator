@@ -29,12 +29,39 @@ export const ExportOptions: React.FC<ExportOptionsProps> = ({
 
   // Social media presets
   const presets: SocialMediaPreset[] = [
+    // Instagram
     { id: 'instagram-square', name: 'Instagram Square', width: 1080, height: 1080, description: '1:1 square', icon: 'instagram' },
     { id: 'instagram-portrait', name: 'Instagram Portrait', width: 1080, height: 1350, description: '4:5 ratio', icon: 'instagram' },
     { id: 'instagram-story', name: 'Instagram Story', width: 1080, height: 1920, description: '9:16 ratio', icon: 'instagram' },
+    { id: 'instagram-reel', name: 'Instagram Reel', width: 1080, height: 1920, description: '9:16 ratio', icon: 'instagram' },
+    
+    // Facebook
     { id: 'facebook-post', name: 'Facebook Post', width: 1200, height: 630, description: 'Standard post', icon: 'facebook' },
+    { id: 'facebook-story', name: 'Facebook Story', width: 1080, height: 1920, description: '9:16 ratio', icon: 'facebook' },
+    { id: 'facebook-cover', name: 'Facebook Cover', width: 851, height: 315, description: 'Cover photo', icon: 'facebook' },
+    
+    // Twitter/X
     { id: 'twitter-post', name: 'Twitter Post', width: 1200, height: 675, description: '16:9 ratio', icon: 'twitter' },
-    { id: 'linkedin-post', name: 'LinkedIn Post', width: 1200, height: 627, description: 'Standard post', icon: 'linkedin' }
+    { id: 'twitter-header', name: 'Twitter Header', width: 1500, height: 500, description: 'Header image', icon: 'twitter' },
+    
+    // LinkedIn
+    { id: 'linkedin-post', name: 'LinkedIn Post', width: 1200, height: 627, description: 'Standard post', icon: 'linkedin' },
+    { id: 'linkedin-cover', name: 'LinkedIn Cover', width: 1584, height: 396, description: 'Cover photo', icon: 'linkedin' },
+    
+    // YouTube
+    { id: 'youtube-thumbnail', name: 'YouTube Thumbnail', width: 1280, height: 720, description: '16:9 ratio', icon: 'youtube' },
+    { id: 'youtube-banner', name: 'YouTube Banner', width: 2560, height: 1440, description: 'Channel banner', icon: 'youtube' },
+    
+    // Pinterest
+    { id: 'pinterest-pin', name: 'Pinterest Pin', width: 1000, height: 1500, description: '2:3 ratio', icon: 'pinterest' },
+    
+    // TikTok
+    { id: 'tiktok-video', name: 'TikTok Video', width: 1080, height: 1920, description: '9:16 ratio', icon: 'tiktok' },
+    
+    // Standard Sizes
+    { id: 'hd-1080', name: 'HD (1080p)', width: 1920, height: 1080, description: '16:9 ratio', icon: 'standard' },
+    { id: '4k-ultra', name: '4K Ultra', width: 3840, height: 2160, description: '16:9 ratio', icon: 'standard' },
+    { id: 'square-hd', name: 'Square HD', width: 1080, height: 1080, description: '1:1 ratio', icon: 'standard' },
   ];
 
   const handleExportFormat = async (format: string) => {
@@ -109,6 +136,10 @@ export const ExportOptions: React.FC<ExportOptionsProps> = ({
       case 'facebook': return <Facebook size={18} />;
       case 'twitter': return <Twitter size={18} />;
       case 'linkedin': return <Linkedin size={18} />;
+      case 'youtube': return <ImageIcon size={18} />; // Placeholder for YouTube
+      case 'pinterest': return <ImageIcon size={18} />; // Placeholder for Pinterest
+      case 'tiktok': return <ImageIcon size={18} />; // Placeholder for TikTok
+      case 'standard': return <ImageIcon size={18} />;
       default: return <ImageIcon size={18} />;
     }
   };

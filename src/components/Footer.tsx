@@ -22,7 +22,7 @@ export const Footer: React.FC = () => {
           className="text-gray-400 hover:text-purple-400 transition-colors flex items-center gap-2"
         >
           <Mail size={16} />
-          <span>code@spiderdunia.com</span>
+          <span>code@bhavik.info</span>
         </a>
       </div>
     </footer>

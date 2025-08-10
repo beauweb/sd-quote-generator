@@ -39,6 +39,14 @@ export interface QuoteSettings extends QuoteTemplate {
     angle: number;
     direction: 'clockwise' | 'counterclockwise';
   };
+  backgroundImage?: {
+    url: string;
+    opacity: number;
+    position: 'center' | 'top' | 'bottom' | 'left' | 'right' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+    size: 'cover' | 'contain' | 'auto' | '100%' | '200%' | '50%';
+    repeat: 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y';
+    blendMode: 'normal' | 'multiply' | 'screen' | 'overlay' | 'darken' | 'lighten' | 'color-dodge' | 'color-burn' | 'hard-light' | 'soft-light' | 'difference' | 'exclusion' | 'hue' | 'saturation' | 'color' | 'luminosity';
+  };
 }
 
 export interface TextShadowEffect {
@@ -67,7 +75,7 @@ export interface GradientEffect {
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  children: React.ReactNode;
+  children: any;
 }
 
 export interface ControlsProps {
