@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { QuoteCanvas, QuoteCanvasHandle } from './components/QuoteCanvas';
 import { Controls } from './components/Controls';
@@ -52,7 +52,8 @@ const AppContent: React.FC = () => {
     signatureFontFamily: 'Poppins', // Add initial signature font
   });
 
-  const initialSettings: QuoteSettings = {
+  // Move initialSettings outside the component to prevent recreation on every render
+  const initialSettings = useMemo((): QuoteSettings => ({
     id: 'default',
     name: 'Default Template',
     backgroundColor: '#ffff00', // Yellow background
@@ -72,13 +73,49 @@ const AppContent: React.FC = () => {
       underline: false
     },
     signatureFontFamily: 'Poppins', // Add initial signature font
-  };
+  }), []);
 
   const [isDarkMode, setIsDarkMode] = useState(true);
   const { registerShortcut } = useShortcuts();
 
   // Add ref to QuoteCanvas
   const quoteCanvasRef = useRef<QuoteCanvasHandle>(null);
+
+  // Create stable callback functions for shortcuts that need to access settings
+  const toggleBold = useCallback(() => {
+    setSettings(prevSettings => ({
+      ...prevSettings,
+      textStyle: { ...prevSettings.textStyle, bold: !prevSettings.textStyle.bold }
+    }));
+  }, [setSettings]);
+
+  const toggleItalic = useCallback(() => {
+    setSettings(prevSettings => ({
+      ...prevSettings,
+      textStyle: { ...prevSettings.textStyle, italic: !prevSettings.textStyle.italic }
+    }));
+  }, [setSettings]);
+
+  const alignCenter = useCallback(() => {
+    setSettings(prevSettings => ({
+      ...prevSettings,
+      textAlignment: 'center'
+    }));
+  }, [setSettings]);
+
+  const alignLeft = useCallback(() => {
+    setSettings(prevSettings => ({
+      ...prevSettings,
+      textAlignment: 'left'
+    }));
+  }, [setSettings]);
+
+  const alignRight = useCallback(() => {
+    setSettings(prevSettings => ({
+      ...prevSettings,
+      textAlignment: 'right'
+    }));
+  }, [setSettings]);
 
   // Define our handlers before using them in the useEffect
   const handleReset = useCallback(() => {
@@ -499,12 +536,7 @@ const AppContent: React.FC = () => {
       label: 'Toggle Bold',
       key: 'b',
       ctrlKey: true,
-      action: () => {
-        setSettings({
-          ...settings,
-          textStyle: { ...settings.textStyle, bold: !settings.textStyle.bold }
-        });
-      },
+      action: toggleBold,
       category: 'text',
       description: 'Toggle bold text styling',
     });
@@ -515,12 +547,7 @@ const AppContent: React.FC = () => {
       label: 'Toggle Italic',
       key: 'i',
       ctrlKey: true,
-      action: () => {
-        setSettings({
-          ...settings,
-          textStyle: { ...settings.textStyle, italic: !settings.textStyle.italic }
-        });
-      },
+      action: toggleItalic,
       category: 'text',
       description: 'Toggle italic text styling',
     });
@@ -532,12 +559,7 @@ const AppContent: React.FC = () => {
       key: 'e',
       ctrlKey: true,
       shiftKey: true,
-      action: () => {
-        setSettings({
-          ...settings,
-          textAlignment: 'center'
-        });
-      },
+      action: alignCenter,
       category: 'text',
       description: 'Center align the text',
     });
@@ -549,12 +571,7 @@ const AppContent: React.FC = () => {
       key: 'l',
       ctrlKey: true,
       shiftKey: true,
-      action: () => {
-        setSettings({
-          ...settings,
-          textAlignment: 'left'
-        });
-      },
+      action: alignLeft,
       category: 'text',
       description: 'Left align the text',
     });
@@ -566,16 +583,11 @@ const AppContent: React.FC = () => {
       key: 'r',
       ctrlKey: true,
       shiftKey: true,
-      action: () => {
-        setSettings({
-          ...settings,
-          textAlignment: 'right'
-        });
-      },
+      action: alignRight,
       category: 'text',
       description: 'Right align the text',
     });
-  }, [registerShortcut, canUndo, canRedo, undo, redo, settings, setSettings, handleReset, handleExport]);
+  }, [registerShortcut, canUndo, canRedo, undo, redo, handleReset, handleExport, toggleBold, toggleItalic, alignCenter, alignLeft, alignRight]);
 
   // Theme setup
   useEffect(() => {
