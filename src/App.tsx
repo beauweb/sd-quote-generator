@@ -622,10 +622,12 @@ const AppContent: React.FC = () => {
             <div className="h-full overflow-hidden">
               <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Preview Section */}
-                <div className="lg:h-full overflow-auto">
-                  <div className="bg-[rgb(12_12_12/0.8)] backdrop-blur-md p-6 rounded-lg shadow-lg border border-dark-700">
-                    <QuoteCanvas ref={quoteCanvasRef} settings={settings} />
-                    <div className="mt-4">
+                <div className="lg:h-full overflow-hidden flex flex-col preview-section">
+                  <div className="bg-[rgb(12_12_12/0.8)] backdrop-blur-md p-6 rounded-lg shadow-lg border border-dark-700 flex-1 flex flex-col min-h-0">
+                    <div className="flex-1 min-h-0 flex items-center justify-center">
+                      <QuoteCanvas ref={quoteCanvasRef} settings={settings} />
+                    </div>
+                    <div className="mt-4 flex-shrink-0">
                       <ExportButton settings={settings} onExport={handleExport} />
                     </div>
                   </div>

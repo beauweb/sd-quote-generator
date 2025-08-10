@@ -370,21 +370,20 @@ export const QuoteCanvas = forwardRef<QuoteCanvasHandle, QuoteCanvasProps>(({
   };
 
   return (
-    <div id="quote-canvas" className="quote-canvas relative" style={{
+    <div id="quote-canvas" className="quote-canvas relative w-full h-full flex items-center justify-center" style={{
       backgroundColor: settings.backgroundColor,
-      width: '100%',
-      aspectRatio: '1 / 1',
       overflow: 'hidden',
       position: 'relative',
     }}>
       <canvas
         ref={canvasRef}
         style={{
-          width: '100%',
+          width: 'auto',
           height: 'auto',
-          maxWidth: '1080px',
+          maxWidth: '100%',
+          maxHeight: '100%',
+          objectFit: 'contain',
           display: 'block',
-          margin: '0 auto',
           transition: 'all 300ms ease-in-out'
         }}
       />
