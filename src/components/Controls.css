@@ -734,3 +734,93 @@
 .remove-image:hover {
   background: rgba(0, 0, 0, 0.9);
 } 
+
+/* Signature visibility toggle styles */
+.control-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toggle-checkbox {
+  display: none;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.toggle-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  transition: color 0.2s ease;
+}
+
+.toggle-checkbox:checked + .toggle-label .toggle-text {
+  color: rgb(147, 51, 234);
+}
+
+.toggle-label::before {
+  content: '';
+  width: 36px;
+  height: 20px;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.toggle-checkbox:checked + .toggle-label::before {
+  background-color: rgb(147, 51, 234);
+  border-color: rgb(147, 51, 234);
+  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.2);
+}
+
+.toggle-label::after {
+  content: '';
+  width: 16px;
+  height: 16px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-checkbox:checked + .toggle-label::after {
+  left: 18px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-label:hover::before {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.toggle-checkbox:checked + .toggle-label:hover::before {
+  background-color: rgb(156, 63, 245);
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.3);
+}
+
+/* Disabled input styles */
+.text-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: rgba(255, 255, 255, 0.05);
+}

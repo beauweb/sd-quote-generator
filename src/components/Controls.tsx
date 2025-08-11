@@ -4,8 +4,8 @@ import { QuoteSettings, TextShadowEffect, TextOutlineEffect, GradientEffect } fr
 import { 
   AlignLeft, AlignCenter, AlignRight, AlignJustify, 
   Bold, Italic, Underline, ChevronDown, ChevronUp,
-  Type, Palette, Box, Circle, Droplet, Layers,
-  Accessibility, Square
+  Type, Palette, Circle, Droplet, Layers,
+  Accessibility, Square, Eye
 } from 'lucide-react';
 import './Controls.css';
 import ContrastAnalyzer from './ContrastAnalyzer';
@@ -17,11 +17,12 @@ interface ControlsProps {
 }
 
 export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }) => {
-  const [activeTab, setActiveTab] = useState<'content' | 'style' | 'dimensions'>('content');
+  const [activeTab, setActiveTab] = useState<'content' | 'style'>('content');
   const [textPanelOpen, setTextPanelOpen] = useState(true);
   const [backgroundPanelOpen, setBackgroundPanelOpen] = useState(true);
   const [effectsPanelOpen, setEffectsPanelOpen] = useState(true);
   const [showContrastAnalyzer, setShowContrastAnalyzer] = useState(false);
+  const [showTextContrast, setShowTextContrast] = useState(false);
 
   const updateSettings = (newSettings: Partial<QuoteSettings>) => {
     onSettingsChange({ ...settings, ...newSettings });
@@ -105,6 +106,22 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
     });
   };
 
+  // Helper function to get the effective background color for contrast analysis
+  const getEffectiveBackgroundColor = () => {
+    if (settings.backgroundGradient) {
+      // For gradients, use the first color as the primary background for contrast analysis
+      return settings.backgroundGradient.colors[0];
+    }
+    return settings.backgroundColor;
+  };
+
+  // Helper function to get the effective signature color
+  const getEffectiveSignatureColor = () => {
+    // The signature color is auto-adjusted, but we can still analyze it
+    // For now, we'll use the text color as a reference
+    return settings.textColor;
+  };
+
   // Helper to check if a gradient is enabled
   const isTextGradientEnabled = () => settings.textGradient?.enabled || false;
   const isTextShadowEnabled = () => settings.textShadow?.enabled || false;
@@ -128,13 +145,6 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
             <Palette size={16} />
             <span>Style</span>
       </button>
-      <button
-            className={`tab ${activeTab === 'dimensions' ? 'active' : ''}`}
-            onClick={() => setActiveTab('dimensions')}
-          >
-            <Box size={16} />
-            <span>Dimensions</span>
-      </button>
     </div>
     </div>
 
@@ -144,27 +154,60 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
           <div className="control-section">
             <div className="section-content">
               <div className="control-group">
+                <label className="control-label">Title</label>
+                <input
+                  type="text"
+                  className="text-input"
+                  value={settings.title}
+                  onChange={(e) => updateSettings({ title: e.target.value })}
+                  placeholder="Enter quote title..."
+                />
+              </div>
+
+              <div className="divider" />
+
+              <div className="control-group">
                 <label className="control-label">Quote Text</label>
                 <textarea
                   className="textarea"
                   value={settings.quoteText}
                   onChange={(e) => updateSettings({ quoteText: e.target.value })}
-                  placeholder="Enter your quote text here..."
+                  placeholder="Enter your quote text here...&#10;Use Enter key for line breaks"
         />
       </div>
 
               <div className="divider" />
 
               <div className="control-group">
-                <label className="control-label">Author</label>
-        <input
+                <div className="control-header">
+                  <label className="control-label">Author</label>
+                  <div className="toggle-container">
+                    <input
+                      type="checkbox"
+                      id="signature-visible"
+                      className="toggle-checkbox"
+                      checked={settings.signatureVisible}
+                      onChange={(e) => updateSettings({ signatureVisible: e.target.checked })}
+                    />
+                    <label htmlFor="signature-visible" className="toggle-label">
+                      <span className="toggle-text">Show</span>
+                    </label>
+                  </div>
+                </div>
+                <input
                   type="text"
                   className="text-input"
                   value={settings.signatureText}
                   onChange={(e) => updateSettings({ signatureText: e.target.value })}
-                  placeholder="Quote author (optional)"
-        />
-      </div>
+                  placeholder="Ankahi Baat"
+                  disabled={!settings.signatureVisible}
+                />
+                <div className="control-note">
+                  <small style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '12px' }}>
+                    💡 Author color automatically adjusts for optimal visibility
+                  </small>
+                </div>
+              </div>
     </div>
           </div>
         </div>
@@ -328,7 +371,7 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
                 {showContrastAnalyzer && (
                   <ContrastAnalyzer
                     foregroundColor={settings.textColor}
-                    backgroundColor={settings.backgroundColor}
+                    backgroundColor={getEffectiveBackgroundColor()}
                     fontSize={settings.fontSize}
                     isBold={settings.textStyle.bold}
                     onApplySuggestion={handleApplySuggestion}
@@ -435,6 +478,104 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
             )}
           </div>
 
+          {/* Signature Styling */}
+          <div className="control-section">
+            <div className="section-header">
+              <div className="section-title">Signature Styling</div>
+            </div>
+            <div className="section-content">
+              <div className="control-row">
+                <div className="control-group">
+                  <label className="control-label">Signature Size</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="range"
+                      className="slider"
+                      min="16"
+                      max="80"
+                      value={settings.signatureSize}
+                      onChange={(e) =>
+                        updateSettings({ signatureSize: parseInt(e.target.value) })
+                      }
+                    />
+                    <span className="control-value">{settings.signatureSize}px</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="control-row">
+                <div className="control-group">
+                  <label className="control-label">Signature Font Family</label>
+                  <select
+                    className="select-input"
+                    value={settings.signatureFontFamily || settings.fontFamily}
+                    onChange={(e) => updateSettings({ signatureFontFamily: e.target.value })}
+                  >
+                    <option value="Inter">Inter</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Playfair Display">Playfair Display</option>
+                    <option value="Montserrat">Montserrat</option>
+                    <option value="Merriweather">Merriweather</option>
+                    <option value="Lora">Lora</option>
+                    <option value="Poppins">Poppins</option>
+                    <option value="Source Sans Pro">Source Sans Pro</option>
+                    <option value="Open Sans">Open Sans</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="control-row">
+                <div className="control-group">
+                  <label className="control-label">Signature Alignment</label>
+                  <div className="button-group">
+                    <button
+                      className={`btn-icon ${settings.signatureAlignment === 'left' ? 'active' : ''}`}
+                      onClick={() => updateSettings({ signatureAlignment: 'left' })}
+                      title="Align Left"
+                    >
+                      <AlignLeft size={16} />
+                    </button>
+                    <button
+                      className={`btn-icon ${settings.signatureAlignment === 'center' ? 'active' : ''}`}
+                      onClick={() => updateSettings({ signatureAlignment: 'center' })}
+                      title="Align Center"
+                    >
+                      <AlignCenter size={16} />
+                    </button>
+                    <button
+                      className={`btn-icon ${settings.signatureAlignment === 'right' ? 'active' : ''}`}
+                      onClick={() => updateSettings({ signatureAlignment: 'right' })}
+                      title="Align Right"
+                    >
+                      <AlignRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+
+
+              <div className="control-row">
+                <div className="control-group">
+                  <label className="control-label">Bottom Margin</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="range"
+                      className="slider"
+                      min="20"
+                      max="200"
+                      value={settings.signatureBottomMargin || 100}
+                      onChange={(e) =>
+                        updateSettings({ signatureBottomMargin: parseInt(e.target.value) })
+                      }
+                    />
+                    <span className="control-value">{settings.signatureBottomMargin || 100}px</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Background */}
           <div className="control-section">
             <div className="section-header">
@@ -448,26 +589,13 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
                     </div>
             {backgroundPanelOpen && (
               <div className="section-content">
-                <div className="control-row">
-                  <div className="control-group">
-                    <label className="control-label">Background Color</label>
-                    <ColorPicker
-                      color={settings.backgroundColor}
-                      onChange={(color) => updateSettings({ backgroundColor: color })}
-                      label="Background Color"
-                      settings={settings}
-                    />
-                    </div>
-                  </div>
-
-                <div className="divider" />
-
+                {/* Background Type Selection */}
                 <div className="control-row">
                   <div className="control-group">
                     <div className="flex items-center justify-between">
-                      <label className="control-label">Use Gradient Background</label>
-                    <div className="flex items-center gap-2">
-                      <input
+                      <label className="control-label">Background Type</label>
+                      <div className="flex items-center gap-2">
+                        <input
                           type="checkbox"
                           className="toggle"
                           checked={!!settings.backgroundGradient}
@@ -485,13 +613,75 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
                             }
                           }}
                         />
+                        <span className="text-sm text-gray-400">
+                          {settings.backgroundGradient ? 'Gradient' : 'Solid Color'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
+                {/* Solid Color Background - Only show when gradient is disabled */}
+                {!settings.backgroundGradient && (
+                  <div className="control-row">
+                    <div className="control-group">
+                      <label className="control-label">Background Color</label>
+                      <ColorPicker
+                        color={settings.backgroundColor}
+                        onChange={(color) => updateSettings({ backgroundColor: color })}
+                        label="Background Color"
+                        settings={settings}
+                      />
+                      <div className="control-note">
+                        <small style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '12px' }}>
+                          Choose a solid color for your quote background
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Background Contrast Analysis */}
+                <div className="control-row">
+                  <div className="control-group">
+                    <div className="flex items-center justify-between">
+                      <label className="control-label">Background Contrast</label>
+                      <button
+                        className="text-sm text-gray-400 hover:text-white"
+                        onClick={() => setShowTextContrast(!showTextContrast)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Eye size={14} />
+                          {showTextContrast ? 'Hide Analysis' : 'Check Contrast'}
+                        </div>
+                      </button>
+                    </div>
+                    <div className="control-note">
+                      <small style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '12px' }}>
+                        💡 Check how your text looks against this background
+                      </small>
+                    </div>
+                  </div>
+                </div>
+
+                {showTextContrast && (
+                  <ContrastAnalyzer
+                    foregroundColor={settings.textColor}
+                    backgroundColor={getEffectiveBackgroundColor()}
+                    fontSize={settings.fontSize}
+                    isBold={settings.textStyle.bold}
+                    onApplySuggestion={handleApplySuggestion}
+                  />
+                )}
+
+                {/* Gradient Background Controls - Only show when gradient is enabled */}
                 {settings.backgroundGradient && (
                   <>
+                    <div className="control-note" style={{ marginBottom: '16px' }}>
+                      <small style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '12px' }}>
+                        Create beautiful gradient backgrounds with two colors
+                      </small>
+                    </div>
                     <div className="control-row">
                       <div className="control-group">
                         <label className="control-label">Gradient Type</label>
@@ -528,16 +718,16 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
                           >
                             <Circle size={16} />
                           </button>
-            </div>
-          </div>
-        </div>
+                        </div>
+                      </div>
+                    </div>
 
-                    {settings.backgroundGradient.type === 'linear' && (
-                <div className="control-row">
-                  <div className="control-group">
+                    {settings.backgroundGradient && settings.backgroundGradient.type === 'linear' && (
+                      <div className="control-row">
+                        <div className="control-group">
                           <label className="control-label">Angle</label>
-                    <select
-                      className="select-input"
+                          <select
+                            className="select-input"
                             value={settings.backgroundGradient.angle || 0}
                             onChange={(e) => {
                               const gradient = {
@@ -557,16 +747,16 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
                             <option value="135">135° (Bottom Right to Top Left)</option>
                             <option value="225">225° (Top Right to Bottom Left)</option>
                             <option value="315">315° (Top Left to Bottom Right)</option>
-                    </select>
-                  </div>
-                    </div>
+                          </select>
+                        </div>
+                      </div>
                     )}
 
-                <div className="control-row">
-                  <div className="control-group">
+                    <div className="control-row">
+                      <div className="control-group">
                         <label className="control-label">Color Stops</label>
                         <div className="flex items-center gap-2">
-                    <ColorPicker
+                          <ColorPicker
                             color={settings.backgroundGradient.colors[0]}
                             onChange={(color) => {
                               if (!settings.backgroundGradient) return;
@@ -580,9 +770,9 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
                               updateSettings({ backgroundGradient: gradient });
                             }}
                             label="Start Color"
-                      settings={settings}
-                    />
-                    <ColorPicker
+                            settings={settings}
+                          />
+                          <ColorPicker
                             color={settings.backgroundGradient.colors[1]}
                             onChange={(color) => {
                               if (!settings.backgroundGradient) return;
@@ -596,11 +786,11 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
                               updateSettings({ backgroundGradient: gradient });
                             }}
                             label="End Color"
-                      settings={settings}
-                    />
-                  </div>
-                </div>
-              </div>
+                            settings={settings}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </>
                 )}
             </div>
@@ -775,106 +965,47 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
                   </div>
                   </>
                 )}
+
+                {/* General Contrast Analysis */}
+                <div className="divider" />
+                
+                <div className="control-row">
+                  <div className="control-group">
+                    <div className="flex items-center justify-between">
+                      <label className="control-label">Overall Contrast Analysis</label>
+                      <button
+                        className="text-sm text-gray-400 hover:text-white"
+                        onClick={() => setShowContrastAnalyzer(!showContrastAnalyzer)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Accessibility size={14} />
+                          {showContrastAnalyzer ? 'Hide Analysis' : 'Check Overall Contrast'}
+                        </div>
+                      </button>
+                    </div>
+                    <div className="control-note">
+                      <small style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '12px' }}>
+                        💡 Analyze contrast for main text against background
+                      </small>
+                    </div>
+                  </div>
+                </div>
+
+                {showContrastAnalyzer && (
+                  <ContrastAnalyzer
+                    foregroundColor={settings.textColor}
+                    backgroundColor={getEffectiveBackgroundColor()}
+                    fontSize={settings.fontSize}
+                    isBold={settings.textStyle.bold}
+                    onApplySuggestion={handleApplySuggestion}
+                  />
+                )}
               </div>
             )}
           </div>
           </div>
 
-        {/* Dimensions Tab */}
-        <div className={`tab-panel ${activeTab === 'dimensions' ? 'active' : ''}`}>
-          <div className="control-section">
-              <div className="section-content">
-                  <div className="control-row">
-                    <div className="control-group">
-                  <label className="control-label">Canvas Width</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="range"
-                      className="slider"
-                      min="400"
-                      max="1200"
-                      step="50"
-                      value={settings.id.includes('width') ? parseInt(settings.id.split('-')[1]) : 1080}
-                      onChange={(e) => {
-                        const width = parseInt(e.target.value);
-                        // We can't directly set width so we'll update the ID to include it
-                        updateSettings({ id: `quote-${width}-${settings.id.split('-')[2] || 1080}` });
-                      }}
-                    />
-                    <span className="control-value">
-                      {settings.id.includes('width') ? parseInt(settings.id.split('-')[1]) : 1080}px
-                    </span>
-                    </div>
-                    </div>
-                  </div>
 
-                    <div className="control-row">
-                      <div className="control-group">
-                  <label className="control-label">Canvas Height</label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="range"
-                      className="slider"
-                      min="400"
-                      max="1200"
-                      step="50"
-                      value={settings.id.includes('height') ? parseInt(settings.id.split('-')[2]) : 1080}
-                            onChange={(e) => {
-                        const height = parseInt(e.target.value);
-                        // We can't directly set height so we'll update the ID to include it
-                        updateSettings({ id: `quote-${settings.id.split('-')[1] || 1080}-${height}` });
-                      }}
-                    />
-                    <span className="control-value">
-                      {settings.id.includes('height') ? parseInt(settings.id.split('-')[2]) : 1080}px
-                    </span>
-                        </div>
-          </div>
-        </div>
-
-                <div className="control-row">
-                  <div className="control-group">
-                  <label className="control-label">Padding</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="range"
-                        className="slider"
-                      min="10"
-                      max="100"
-                      value={settings.padding}
-                      onChange={(e) => updateSettings({ padding: parseInt(e.target.value) })}
-                      />
-                    <span className="control-value">{settings.padding}px</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="control-row">
-                  <div className="control-group">
-                  <label className="control-label">Border Radius</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="range"
-                        className="slider"
-                      min="0"
-                      max="36"
-                      value={settings.padding} /* Using padding as a placeholder since there's no borderRadius */
-                      onChange={(e) => updateSettings({ padding: parseInt(e.target.value) })}
-                      />
-                    <span className="control-value">{settings.padding}px</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          
-          <PulseCard
-            icon={<Box size={16} />}
-            title="Pro Tip: Perfect Dimensions"
-            description="Social media platforms have optimal image dimensions. Common ones include Instagram 1080x1080, Twitter 1200x675, Facebook 1200x630."
-            variant="blue"
-          />
-        </div>
       </div>
     </div>
   );

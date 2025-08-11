@@ -1,6 +1,8 @@
 import React from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ThemeToggle } from '../ThemeToggle';
+import { AnimatedLogo } from '../AnimatedLogo';
+import { TextLogo } from '../TextLogo';
 
 export const Header: React.FC = () => {
   const theme = useTheme();
@@ -9,14 +11,9 @@ export const Header: React.FC = () => {
     <header className="sticky top-0 z-50 backdrop-blur-md bg-surface/80 border-b border-border">
       <div className="max-w-7xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          {/* Logo and Brand */}
+          {/* Left side - Text Logo */}
           <div className="flex items-center space-x-2">
-            <div className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              SD
-            </div>
-            <span className="hidden sm:inline-block text-text-secondary">
-              Quotes Creator
-            </span>
+            <TextLogo />
           </div>
 
           {/* Right side controls */}

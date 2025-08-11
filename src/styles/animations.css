@@ -1,4 +1,4 @@
-/* Custom animations for SD Quote Generator */
+/* Custom animations for Ankahi Baat */
 
 @keyframes spin {
   from {
@@ -99,4 +99,190 @@
 
 .grid-animation:hover::before {
   opacity: 1;
-} 
+}
+
+/* Logo-specific animations */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes gradient-x {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 3s ease infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out forwards;
+}
+
+/* SVG Logo Animations */
+@keyframes flow-1 {
+  0%, 100% {
+    stroke-dasharray: 0, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 100, 200;
+    stroke-dashoffset: -100;
+  }
+}
+
+@keyframes flow-2 {
+  0%, 100% {
+    stroke-dasharray: 0, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 100, 200;
+    stroke-dashoffset: -100;
+  }
+}
+
+@keyframes flow-3 {
+  0%, 100% {
+    stroke-dasharray: 0, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 100, 200;
+    stroke-dashoffset: -100;
+  }
+}
+
+@keyframes swirl {
+  0%, 100% {
+    stroke-dasharray: 0, 100;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 50, 100;
+    stroke-dashoffset: -50;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes float-1 {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(180deg);
+  }
+}
+
+@keyframes float-2 {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(-180deg);
+  }
+}
+
+@keyframes float-3 {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(90deg);
+  }
+}
+
+@keyframes ping-ring-1 {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes ping-ring-2 {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.animate-flow-1 {
+  animation: flow-1 4s ease infinite;
+}
+
+.animate-flow-2 {
+  animation: flow-2 4.5s ease infinite;
+}
+
+.animate-flow-3 {
+  animation: flow-3 5s ease infinite;
+}
+
+.animate-swirl {
+  animation: swirl 3s ease infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+.animate-float-1 {
+  animation: float-1 3s ease-in-out infinite;
+}
+
+.animate-float-2 {
+  animation: float-2 3.5s ease-in-out infinite;
+}
+
+.animate-float-3 {
+  animation: float-3 4s ease-in-out infinite;
+}
+
+.animate-ping-ring-1 {
+  animation: ping-ring-1 2s ease-out infinite;
+}
+
+.animate-ping-ring-2 {
+  animation: ping-ring-2 2.5s ease-out infinite;
+}

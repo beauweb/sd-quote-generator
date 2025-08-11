@@ -1,4 +1,4 @@
-# SD Quote Generator Enhancement Plan
+# Ankahi Baat Enhancement Plan
 
 ## ✅ Completed Enhancements
 

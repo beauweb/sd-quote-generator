@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { QuoteSettings, TextShadowEffect, TextOutlineEffect, GradientEffect } from '../types';
+import { getSmartContrastColor } from '../utils/colorUtils';
 
 interface QuoteCanvasProps {
   settings: QuoteSettings;
@@ -152,44 +153,118 @@ export const QuoteCanvas = forwardRef<QuoteCanvasHandle, QuoteCanvasProps>(({
       ctx.miterLimit = 2;
     }
 
-    // Enhanced word wrap function with justify support
+    // Enhanced word wrap function with justify support and line break preservation
     const wrapText = (text: string, maxWidth: number) => {
-      const words = text.split(' ');
-      const lines: { text: string; words: string[] }[] = [];
-      let currentLine = words[0];
-      let currentWords = [words[0]];
-
-      for (let i = 1; i < words.length; i++) {
-        const word = words[i];
-        const width = ctx.measureText(currentLine + " " + word).width;
-        
-        if (width < maxWidth) {
-          currentLine += " " + word;
-          currentWords.push(word);
+      // First split by user line breaks
+      const userLines = text.split('\n');
+      const allLines: { text: string; words: string[] }[] = [];
+      
+      userLines.forEach(userLine => {
+        if (userLine.trim() === '') {
+          // Empty line from user
+          allLines.push({ text: '', words: [] });
         } else {
-          lines.push({ text: currentLine, words: currentWords });
-          currentLine = word;
-          currentWords = [word];
+          // Word wrap within this user line
+          const words = userLine.split(' ');
+          let currentLine = words[0];
+          let currentWords = [words[0]];
+
+          for (let i = 1; i < words.length; i++) {
+            const word = words[i];
+            const width = ctx.measureText(currentLine + " " + word).width;
+            
+            if (width < maxWidth) {
+              currentLine += " " + word;
+              currentWords.push(word);
+            } else {
+              allLines.push({ text: currentLine, words: currentWords });
+              currentLine = word;
+              currentWords = [word];
+            }
+          }
+          allLines.push({ text: currentLine, words: currentWords });
         }
-      }
-      lines.push({ text: currentLine, words: currentWords });
-      return lines;
+      });
+      
+      return allLines;
     };
 
-    // Draw quote text with justified alignment
+    // Draw title and quote text
     const maxWidth = canvas.width - (padding * 2);
-    const lines = wrapText(settings.quoteText, maxWidth);
+    const titleLines = settings.title ? wrapText(settings.title, maxWidth) : [];
+    const quoteLines = wrapText(settings.quoteText, maxWidth);
     const lineHeight = fontSize * (settings.lineHeight || 1.2);
+    const titleFontSize = Math.round(fontSize * 0.9); // Title is 90% of quote font size for better clarity
+    const titleLineHeight = titleFontSize * (settings.lineHeight || 1.2);
     
-    // Calculate the starting y position based on the number of lines
-    let y = (canvas.height - (lines.length * lineHeight)) / 2;
+    // Calculate total content height
+    const totalContentHeight = (titleLines.length * titleLineHeight) + (quoteLines.length * lineHeight);
+    
+    // Calculate the starting y position for title
+    let titleY = (canvas.height - totalContentHeight) / 2;
+    
+    // Draw title if it exists
+    if (titleLines.length > 0) {
+      ctx.save();
+      
+      // Build font string with bold and italic styles
+      let fontStyle = '';
+      if (settings.textStyle.italic) fontStyle += 'italic ';
+      if (settings.textStyle.bold) fontStyle += 'bold ';
+      
+      ctx.font = `${fontStyle}${titleFontSize}px ${settings.fontFamily}`;
+      ctx.fillStyle = settings.textColor;
+      ctx.textAlign = settings.textAlignment as CanvasTextAlign;
+      
+      // Apply text effects to title
+      if (settings.textShadow && settings.textShadow.enabled) {
+        ctx.shadowColor = settings.textShadow.color;
+        ctx.shadowBlur = settings.textShadow.blur;
+        ctx.shadowOffsetX = settings.textShadow.offsetX;
+        ctx.shadowOffsetY = settings.textShadow.offsetY;
+      } else {
+        // Add subtle default shadow to title for better readability
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+        ctx.shadowBlur = 2;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+      }
+      
+      titleLines.forEach(line => {
+        let x;
+        switch(settings.textAlignment) {
+          case 'left':
+            x = padding;
+            break;
+          case 'right':
+            x = canvas.width - padding;
+            break;
+          default:
+            x = canvas.width / 2;
+        }
+        
+        // Draw title outline if enabled
+        if (settings.textOutline && settings.textOutline.enabled) {
+          ctx.strokeText(line.text, x, titleY);
+        }
+        
+        // Draw title fill
+        ctx.fillText(line.text, x, titleY);
+        titleY += titleLineHeight;
+      });
+      
+      ctx.restore();
+    }
+    
+    // Calculate the starting y position for quote text with better spacing
+    let y = titleLines.length > 0 ? titleY + (titleLineHeight * 1.2) : (canvas.height - (quoteLines.length * lineHeight)) / 2;
     
     // Special case for curved text
     if (settings.textPath && settings.textPath.enabled) {
-      drawCurvedText(ctx, settings, canvas, lines);
+      drawCurvedText(ctx, settings, canvas, quoteLines);
     } else {
       // Draw text normally
-      lines.forEach(line => {
+      quoteLines.forEach(line => {
         if (settings.textAlignment === 'justify' && line.words.length > 1) {
           // Calculate spacing for justified text
           const totalSpacing = maxWidth - ctx.measureText(line.text.replace(/\s/g, '')).width;
@@ -233,36 +308,65 @@ export const QuoteCanvas = forwardRef<QuoteCanvasHandle, QuoteCanvasProps>(({
       });
     }
 
-    // Reset shadow settings before drawing signature
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-
-    // Draw signature with proper alignment and font
-    const signatureSize = Math.round((settings.signatureSize * canvasSize) / 1080);
-    const bottomMargin = Math.round((settings.signatureBottomMargin || 100) * canvasSize / 1080);
-    
-    ctx.font = `${signatureSize}px ${settings.signatureFontFamily || settings.fontFamily}`;
-    ctx.fillStyle = settings.signatureColor;
-    ctx.textAlign = settings.signatureAlignment as CanvasTextAlign;
-    
-    // Calculate signature position with fixed bottom margin
-    let signatureX;
-    switch(settings.signatureAlignment) {
-      case 'left':
-        signatureX = Math.round(padding);
-        break;
-      case 'right':
-        signatureX = Math.round(canvas.width - padding);
-        break;
-      default:
-        signatureX = Math.round(canvas.width / 2);
+    // Draw signature with proper alignment and font (only if visible)
+    if (settings.signatureVisible && settings.signatureText.trim()) {
+      const signatureSize = Math.round((settings.signatureSize * canvasSize) / 1080);
+      const bottomMargin = Math.round((settings.signatureBottomMargin || 100) * canvasSize / 1080);
+      
+      // Build font string with bold and italic styles for signature
+      let fontStyle = '';
+      if (settings.textStyle.italic) fontStyle += 'italic ';
+      if (settings.textStyle.bold) fontStyle += 'bold ';
+      
+      ctx.font = `${fontStyle}${signatureSize}px ${settings.signatureFontFamily || settings.fontFamily}`;
+      
+      // Auto-adjust signature color based on background for better visibility
+      const backgroundColor = settings.backgroundGradient ? 
+        settings.backgroundGradient.colors[0] : // Use first gradient color as fallback
+        settings.backgroundColor;
+      const autoSignatureColor = getSmartContrastColor(backgroundColor);
+      ctx.fillStyle = autoSignatureColor;
+      
+      ctx.textAlign = settings.signatureAlignment as CanvasTextAlign;
+      
+      // Apply text effects to signature (same as title and quote text)
+      if (settings.textShadow && settings.textShadow.enabled) {
+        ctx.shadowColor = settings.textShadow.color;
+        ctx.shadowBlur = settings.textShadow.blur;
+        ctx.shadowOffsetX = settings.textShadow.offsetX;
+        ctx.shadowOffsetY = settings.textShadow.offsetY;
+      } else {
+        // Add subtle default shadow to signature for better readability
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+        ctx.shadowBlur = 2;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+      }
+      
+      // Calculate signature position with fixed bottom margin
+      let signatureX;
+      switch(settings.signatureAlignment) {
+        case 'left':
+          signatureX = Math.round(padding);
+          break;
+        case 'right':
+          signatureX = Math.round(canvas.width - padding);
+          break;
+        default:
+          signatureX = Math.round(canvas.width / 2);
+      }
+      
+      // Position signature at specified distance from bottom with precise Y coordinate
+      const signatureY = Math.round(canvas.height - bottomMargin);
+      
+      // Draw signature outline if enabled
+      if (settings.textOutline && settings.textOutline.enabled) {
+        ctx.strokeText(settings.signatureText, signatureX, signatureY);
+      }
+      
+      // Draw signature fill
+      ctx.fillText(settings.signatureText, signatureX, signatureY);
     }
-    
-    // Position signature at specified distance from bottom with precise Y coordinate
-    const signatureY = Math.round(canvas.height - bottomMargin);
-    ctx.fillText(settings.signatureText, signatureX, signatureY);
     
     // Restore the context state
     ctx.restore();
@@ -371,7 +475,6 @@ export const QuoteCanvas = forwardRef<QuoteCanvasHandle, QuoteCanvasProps>(({
 
   return (
     <div id="quote-canvas" className="quote-canvas relative w-full h-full flex items-center justify-center" style={{
-      backgroundColor: settings.backgroundColor,
       overflow: 'hidden',
       position: 'relative',
     }}>

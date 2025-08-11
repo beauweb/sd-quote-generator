@@ -1,4 +1,4 @@
-# SD Quote Generator
+# Ankahi Baat
 
 A modern, feature-rich quote generator built with React, TypeScript, and Tailwind CSS. Create beautiful, customizable quotes with advanced typography, effects, and export options.
 
@@ -232,4 +232,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ by the SD Quote Generator team** 
+**Made with ❤️ by the Ankahi Baat team** 

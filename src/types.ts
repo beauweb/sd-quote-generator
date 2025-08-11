@@ -16,6 +16,7 @@ export interface QuoteTemplate {
   signatureColor: string;
   signatureText: string;
   signatureAlignment: 'left' | 'center' | 'right';
+  signatureVisible: boolean; // Show/hide toggle for signature
   textStyle: {
     bold: boolean;
     italic: boolean;
@@ -28,9 +29,11 @@ export interface QuoteTemplate {
   textOutline?: TextOutlineEffect;
   textGradient?: GradientEffect;
   signatureBottomMargin?: number;
+  title: string;
 }
 
 export interface QuoteSettings extends QuoteTemplate {
+  title: string;
   quoteText: string;
   signatureFontFamily?: string;
   textPath?: {

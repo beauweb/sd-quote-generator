@@ -19,6 +19,7 @@ import { Footer } from './components/Footer';
 import { ShortcutsProvider } from './contexts/ShortcutsContext';
 import ShortcutsModal from './components/ShortcutsModal';
 import { useShortcuts } from './contexts/ShortcutsContext';
+import { getSmartContrastColor } from './utils/colorUtils';
 import './styles/animations.css';
 
 // Wrapper component to register shortcuts inside the provider context
@@ -41,8 +42,10 @@ const AppContent: React.FC = () => {
     padding: 100,
     signatureSize: 50, // Ensure this is at least 20px
     signatureColor: '#000000', // Black signature color
-    signatureText: '#SDdiary',
+    signatureText: 'Ankahi Baat',
     signatureAlignment: 'center' as const, // Default center alignment for signature
+    signatureVisible: true, // Show signature by default
+    title: 'Quote Title',
     quoteText: "I'm selfish, impatient and a little insecure. I make mistakes, I am out of control and at times hard to handle. But if you can't handle me at my worst, then you sure as hell don't deserve me at my best",
     textStyle: {
       bold: false,
@@ -64,8 +67,10 @@ const AppContent: React.FC = () => {
     padding: 100,
     signatureSize: 50, // Ensure this is at least 20px
     signatureColor: '#000000', // Black signature color
-    signatureText: '#SDdiary',
+    signatureText: 'Ankahi Baat',
     signatureAlignment: 'center', // Default center alignment for signature
+    signatureVisible: true, // Show signature by default
+    title: 'Quote Title',
     quoteText: "I'm selfish, impatient and a little insecure. I make mistakes, I am out of control and at times hard to handle. But if you can't handle me at my worst, then you sure as hell don't deserve me at my best",
     textStyle: {
       bold: false,
@@ -180,7 +185,7 @@ const AppContent: React.FC = () => {
         gradient.addColorStop(0, settings.backgroundGradient.colors[0]);
         gradient.addColorStop(1, settings.backgroundGradient.colors[1]);
         ctx.fillStyle = gradient;
-            } else {
+      } else {
         ctx.fillStyle = settings.backgroundColor;
       }
       ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
@@ -258,28 +263,40 @@ const AppContent: React.FC = () => {
       
       ctx.textAlign = settings.textAlignment as CanvasTextAlign;
       
-      // Word wrap function - adapted to high resolution
+      // Word wrap function - adapted to high resolution with line break preservation
       const wrapText = (text: string, maxWidth: number) => {
-        const words = text.split(' ');
-        const lines: { text: string; words: string[] }[] = [];
-        let currentLine = words[0];
-        let currentWords = [words[0]];
-
-        for (let i = 1; i < words.length; i++) {
-          const word = words[i];
-          const width = ctx.measureText(currentLine + " " + word).width;
-          
-          if (width < maxWidth) {
-            currentLine += " " + word;
-            currentWords.push(word);
+        // First split by user line breaks
+        const userLines = text.split('\n');
+        const allLines: { text: string; words: string[] }[] = [];
+        
+        userLines.forEach(userLine => {
+          if (userLine.trim() === '') {
+            // Empty line from user
+            allLines.push({ text: '', words: [] });
           } else {
-            lines.push({ text: currentLine, words: currentWords });
-            currentLine = word;
-            currentWords = [word];
+            // Word wrap within this user line
+            const words = userLine.split(' ');
+            let currentLine = words[0];
+            let currentWords = [words[0]];
+
+            for (let i = 1; i < words.length; i++) {
+              const word = words[i];
+              const width = ctx.measureText(currentLine + " " + word).width;
+              
+              if (width < maxWidth) {
+                currentLine += " " + word;
+                currentWords.push(word);
+              } else {
+                allLines.push({ text: currentLine, words: currentWords });
+                currentLine = word;
+                currentWords = [word];
+              }
+            }
+            allLines.push({ text: currentLine, words: currentWords });
           }
-        }
-        lines.push({ text: currentLine, words: currentWords });
-        return lines;
+        });
+        
+        return allLines;
       };
       
       // Configure text shadow if enabled - CRITICAL for matching preview appearance
@@ -306,16 +323,78 @@ const AppContent: React.FC = () => {
         ctx.miterLimit = 2;
       }
       
-      // Draw the quote text
+      // Draw title and quote text
       const maxWidth = exportCanvas.width - (padding * 2);
-      const lines = wrapText(settings.quoteText, maxWidth);
+      const titleLines = settings.title ? wrapText(settings.title, maxWidth) : [];
+      const quoteLines = wrapText(settings.quoteText, maxWidth);
       const lineHeight = fontSize * (settings.lineHeight || 1.2);
+      const titleFontSize = Math.round(fontSize * 0.9); // Title is 90% of quote font size for better clarity
+      const titleLineHeight = titleFontSize * (settings.lineHeight || 1.2);
       
-      // Calculate starting y position
-      let y = (exportCanvas.height - (lines.length * lineHeight)) / 2;
+      // Calculate total content height
+      const totalContentHeight = (titleLines.length * titleLineHeight) + (quoteLines.length * lineHeight);
+      
+      // Calculate starting y position for title
+      let titleY = (exportCanvas.height - totalContentHeight) / 2;
+      
+      // Draw title if it exists
+      if (titleLines.length > 0) {
+        ctx.save();
+        
+        // Build font string with bold and italic styles
+        let fontStyle = '';
+        if (settings.textStyle.italic) fontStyle += 'italic ';
+        if (settings.textStyle.bold) fontStyle += 'bold ';
+        
+        ctx.font = `${fontStyle}${titleFontSize}px ${settings.fontFamily}`;
+        ctx.fillStyle = settings.textColor;
+        ctx.textAlign = settings.textAlignment as CanvasTextAlign;
+        
+        // Apply text effects to title
+        if (settings.textShadow && settings.textShadow.enabled) {
+          ctx.shadowColor = settings.textShadow.color;
+          ctx.shadowBlur = Math.round(settings.textShadow.blur * scaleFactor);
+          ctx.shadowOffsetX = Math.round(settings.textShadow.offsetX * scaleFactor);
+          ctx.shadowOffsetY = Math.round(settings.textShadow.offsetY * scaleFactor);
+        } else {
+          // Add subtle default shadow to title for better readability
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+          ctx.shadowBlur = Math.round(2 * scaleFactor);
+          ctx.shadowOffsetX = Math.round(1 * scaleFactor);
+          ctx.shadowOffsetY = Math.round(1 * scaleFactor);
+        }
+        
+        titleLines.forEach(line => {
+          let x;
+          switch(settings.textAlignment) {
+            case 'left':
+              x = padding;
+              break;
+            case 'right':
+              x = exportCanvas.width - padding;
+              break;
+            default:
+              x = exportCanvas.width / 2;
+          }
+          
+          // Draw title outline if enabled
+          if (settings.textOutline && settings.textOutline.enabled) {
+            ctx.strokeText(line.text, x, titleY);
+          }
+          
+          // Draw title fill
+          ctx.fillText(line.text, x, titleY);
+          titleY += titleLineHeight;
+        });
+        
+        ctx.restore();
+      }
+      
+      // Calculate starting y position for quote text with better spacing
+      let y = titleLines.length > 0 ? titleY + (titleLineHeight * 1.2) : (exportCanvas.height - (quoteLines.length * lineHeight)) / 2;
       
       // Draw text with all effects applied
-      lines.forEach(line => {
+      quoteLines.forEach(line => {
         if (settings.textAlignment === 'justify' && line.words.length > 1) {
           // Handle justified text
           const totalSpacing = maxWidth - ctx.measureText(line.text.replace(/\s/g, '')).width;
@@ -361,36 +440,65 @@ const AppContent: React.FC = () => {
         y += lineHeight;
       });
       
-      // Reset shadow for the signature
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-      
-      // Draw signature
-      const signatureSize = Math.round(settings.signatureSize * scaleFactor);
-      const bottomMargin = Math.round((settings.signatureBottomMargin || 100) * scaleFactor);
-      
-      ctx.font = `${signatureSize}px ${settings.signatureFontFamily || settings.fontFamily}`;
-      ctx.fillStyle = settings.signatureColor;
-      ctx.textAlign = settings.signatureAlignment as CanvasTextAlign;
-      
-      // Calculate the signature position
-      let signatureX;
-      switch(settings.signatureAlignment) {
-        case 'left':
-          signatureX = padding;
-          break;
-        case 'right':
-          signatureX = exportCanvas.width - padding;
-          break;
-        default:
-          signatureX = exportCanvas.width / 2;
+      // Draw signature with proper alignment and font (only if visible)
+      if (settings.signatureVisible && settings.signatureText.trim()) {
+        const signatureSize = Math.round(settings.signatureSize * scaleFactor);
+        const bottomMargin = Math.round((settings.signatureBottomMargin || 100) * scaleFactor);
+        
+        // Build font string with bold and italic styles for signature
+        let fontStyle = '';
+        if (settings.textStyle.italic) fontStyle += 'italic ';
+        if (settings.textStyle.bold) fontStyle += 'bold ';
+        
+        ctx.font = `${fontStyle}${signatureSize}px ${settings.signatureFontFamily || settings.fontFamily}`;
+        
+        // Auto-adjust signature color based on background for better visibility
+        const backgroundColor = settings.backgroundGradient ? 
+          settings.backgroundGradient.colors[0] : // Use first gradient color as fallback
+          settings.backgroundColor;
+        const autoSignatureColor = getSmartContrastColor(backgroundColor);
+        ctx.fillStyle = autoSignatureColor;
+        
+        ctx.textAlign = settings.signatureAlignment as CanvasTextAlign;
+        
+        // Apply text effects to signature (same as title and quote text)
+        if (settings.textShadow && settings.textShadow.enabled) {
+          ctx.shadowColor = settings.textShadow.color;
+          ctx.shadowBlur = Math.round(settings.textShadow.blur * scaleFactor);
+          ctx.shadowOffsetX = Math.round(settings.textShadow.offsetX * scaleFactor);
+          ctx.shadowOffsetY = Math.round(settings.textShadow.offsetY * scaleFactor);
+        } else {
+          // Add subtle default shadow to signature for better readability
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+          ctx.shadowBlur = Math.round(2 * scaleFactor);
+          ctx.shadowOffsetX = Math.round(1 * scaleFactor);
+          ctx.shadowOffsetY = Math.round(1 * scaleFactor);
+        }
+        
+        // Calculate the signature position
+        let signatureX;
+        switch(settings.signatureAlignment) {
+          case 'left':
+            signatureX = padding;
+            break;
+          case 'right':
+            signatureX = exportCanvas.width - padding;
+            break;
+          default:
+            signatureX = exportCanvas.width / 2;
+        }
+        
+        // Draw the signature text
+        const signatureY = exportCanvas.height - bottomMargin;
+        
+        // Draw signature outline if enabled
+        if (settings.textOutline && settings.textOutline.enabled) {
+          ctx.strokeText(settings.signatureText, signatureX, signatureY);
+        }
+        
+        // Draw signature fill
+        ctx.fillText(settings.signatureText, signatureX, signatureY);
       }
-      
-      // Draw the signature text
-      const signatureY = exportCanvas.height - bottomMargin;
-      ctx.fillText(settings.signatureText, signatureX, signatureY);
       
       // Get the high-resolution image data with maximum quality
       const dataUrl = exportCanvas.toDataURL('image/png', 1.0);
@@ -428,8 +536,32 @@ const AppContent: React.FC = () => {
     // This code should match exactly what's in QuoteCanvas component
     // (This rendering logic would ideally be extracted to a shared function)
     
-    // Background
-    ctx.fillStyle = settings.backgroundColor;
+    // Create background gradient or solid color
+    if (settings.backgroundGradient) {
+      let gradient;
+      if (settings.backgroundGradient.type === 'linear') {
+        const angle = settings.backgroundGradient.angle || 0;
+        const radian = (angle - 90) * (Math.PI / 180);
+        const length = Math.abs(canvas.width * Math.cos(radian)) + Math.abs(canvas.height * Math.sin(radian));
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const startX = centerX - length / 2 * Math.cos(radian);
+        const startY = centerY - length / 2 * Math.sin(radian);
+        const endX = centerX + length / 2 * Math.cos(radian);
+        const endY = centerY + length / 2 * Math.sin(radian);
+        gradient = ctx.createLinearGradient(startX, startY, endX, endY);
+      } else {
+        gradient = ctx.createRadialGradient(
+          canvas.width / 2, canvas.height / 2, 0,
+          canvas.width / 2, canvas.height / 2, canvas.width / 2
+        );
+      }
+      gradient.addColorStop(0, settings.backgroundGradient.colors[0]);
+      gradient.addColorStop(1, settings.backgroundGradient.colors[1]);
+      ctx.fillStyle = gradient;
+    } else {
+      ctx.fillStyle = settings.backgroundColor;
+    }
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // Apply all the text effects, gradients, etc.
