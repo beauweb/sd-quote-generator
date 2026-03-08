@@ -17,6 +17,8 @@ export interface QuoteTemplate {
   signatureText: string;
   signatureAlignment: 'left' | 'center' | 'right';
   signatureVisible: boolean; // Show/hide toggle for signature
+  title: string;
+  titleVisible: boolean; // Show/hide toggle for title
   textStyle: {
     bold: boolean;
     italic: boolean;
@@ -29,13 +31,13 @@ export interface QuoteTemplate {
   textOutline?: TextOutlineEffect;
   textGradient?: GradientEffect;
   signatureBottomMargin?: number;
-  title: string;
 }
 
 export interface QuoteSettings extends QuoteTemplate {
   title: string;
   quoteText: string;
   signatureFontFamily?: string;
+  titleFontFamily?: string;
   textPath?: {
     enabled: boolean;
     radius: number;
@@ -50,6 +52,7 @@ export interface QuoteSettings extends QuoteTemplate {
     repeat: 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y';
     blendMode: 'normal' | 'multiply' | 'screen' | 'overlay' | 'darken' | 'lighten' | 'color-dodge' | 'color-burn' | 'hard-light' | 'soft-light' | 'difference' | 'exclusion' | 'hue' | 'saturation' | 'color' | 'luminosity';
   };
+  frameStyle?: 'square' | 'rounded' | 'circle' | 'arch' | 'polaroid' | 'scalloped' | 'diamond' | 'octagon' | 'heart' | 'star' | 'blob' | 'ticket';
 }
 
 export interface TextShadowEffect {
@@ -78,7 +81,7 @@ export interface GradientEffect {
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  children: any;
+  children: React.ReactNode;
 }
 
 export interface ControlsProps {

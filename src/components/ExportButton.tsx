@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
 import { QuoteSettings } from '../types';
 import { Download, Loader } from 'lucide-react';
-import { PulseCard } from './ui/PulseCard';
+import './ExportButton.css';
 
 interface ExportButtonProps {
   settings: QuoteSettings;
   onExport: (resolution: number) => Promise<void>;
 }
 
-export const ExportButton: React.FC<ExportButtonProps> = ({ settings, onExport }) => {
+export const ExportButton: React.FC<ExportButtonProps> = ({ onExport }) => {
   const [exportingSize, setExportingSize] = useState<number | null>(null);
 
   const resolutions = [
-    { label: 'HD', size: 1920, description: '1920×1920' },
-    { label: '2K', size: 2560, description: '2560×2560' },
-    { label: '4K', size: 4096, description: '4096×4096' }
+    { label: 'HD', size: 1920, description: '1920×1920', varClass: 'res-hd' },
+    { label: '2K', size: 2560, description: '2560×2560', varClass: 'res-2k' },
+    { label: '4K', size: 4096, description: '4096×4096', varClass: 'res-4k' }
   ];
 
   const handleExport = async (size: number) => {
@@ -34,30 +34,28 @@ export const ExportButton: React.FC<ExportButtonProps> = ({ settings, onExport }
   };
 
   return (
-    <div>      
-      <div className="grid grid-cols-3 gap-3">
-        {resolutions.map((res) => {
-          const isLoading = exportingSize === res.size;
-          
-          return (
-            <PulseCard
-              key={res.size}
-              onClick={() => handleExport(res.size)}
-              disabled={exportingSize !== null}
-              icon={isLoading ? <Loader className="animate-spin" /> : <Download />}
-              title={isLoading ? "Downloading..." : res.label}
-              description={res.description}
-              variant={res.label === "HD" ? "blue" : res.label === "2K" ? "purple" : "amber"}
-              size="sm"
-              glowEffect={true}
-              interactive={true}
-              showGridLines={true}
-              hoverScale={1.03}
-              isActive={isLoading}
-            />
-          );
-        })}
-      </div>
+    <div className="export-buttons-grid">
+      {resolutions.map((res) => {
+        const isLoading = exportingSize === res.size;
+        
+        return (
+          <button
+            key={res.size}
+            className={`export-card ${res.varClass} ${isLoading ? 'is-loading' : ''}`}
+            onClick={() => handleExport(res.size)}
+            disabled={exportingSize !== null}
+          >
+            <div className="export-hover-glow" />
+            <div className="export-icon-wrapper">
+              {isLoading ? <Loader className="animate-spin" size={18} /> : <Download size={18} />}
+            </div>
+            <div className="export-content">
+              <div className="export-title">{res.label}</div>
+              <div className="export-desc">{res.description}</div>
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }; 

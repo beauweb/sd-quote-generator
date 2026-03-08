@@ -46,6 +46,17 @@ export const ShortcutsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
       }
 
+      // Skip if inside a contenteditable element (e.g. WYSIWYG editor)
+      if (
+        event.target instanceof HTMLElement &&
+        event.target.isContentEditable
+      ) {
+        // Only allow the shortcuts modal toggle inside contenteditable
+        if (!(event.ctrlKey && event.key === '/')) {
+          return;
+        }
+      }
+
       // Toggle shortcut help modal with Ctrl+/
       if (event.ctrlKey && event.key === '/') {
         event.preventDefault();

@@ -1,0 +1,148 @@
+.export-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+
+.export-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 16px;
+  background: rgba(20, 20, 22, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+}
+
+.export-card:hover:not(:disabled) {
+  background: rgba(30, 30, 34, 0.6);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.export-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Icon Container */
+.export-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  margin-bottom: 24px;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.export-card:hover:not(:disabled) .export-icon-wrapper {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+/* Typography */
+.export-content {
+  position: relative;
+  z-index: 2;
+}
+
+.export-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 4px;
+  transition: color 0.3s ease;
+}
+
+.export-desc {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+}
+
+.export-card:hover:not(:disabled) .export-title {
+  color: #fff;
+}
+
+/* Loading State */
+.export-card.is-loading .export-icon-wrapper {
+  color: rgb(147, 51, 234);
+  background: rgba(147, 51, 234, 0.1);
+}
+
+.export-card.is-loading {
+  border-color: rgba(147, 51, 234, 0.5);
+  background: rgba(147, 51, 234, 0.05);
+  box-shadow: 0 0 15px rgba(147, 51, 234, 0.15);
+}
+
+/* Glass & Glow Effects */
+.export-hover-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at 50% 0%, 
+    rgba(255, 255, 255, 0.06) 0%, 
+    rgba(255, 255, 255, 0) 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.export-card:hover:not(:disabled) .export-hover-glow {
+  opacity: 1;
+}
+
+/* Specific colors for different sizes on hover */
+.export-card.res-hd:hover:not(:disabled) .export-icon-wrapper {
+  color: #60a5fa; /* Blue */
+  background: rgba(96, 165, 250, 0.15);
+}
+.export-card.res-hd:hover:not(:disabled) {
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+.export-card.res-2k:hover:not(:disabled) .export-icon-wrapper {
+  color: #c084fc; /* Purple */
+  background: rgba(192, 132, 252, 0.15);
+}
+.export-card.res-2k:hover:not(:disabled) {
+  border-color: rgba(192, 132, 252, 0.3);
+}
+
+.export-card.res-4k:hover:not(:disabled) .export-icon-wrapper {
+  color: #fbbf24; /* Amber */
+  background: rgba(251, 191, 36, 0.15);
+}
+.export-card.res-4k:hover:not(:disabled) {
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+/* Pulse animation for loading */
+@keyframes loadingPulse {
+  0% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(147, 51, 234, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0); }
+}
+
+.export-card.is-loading .export-icon-wrapper {
+  animation: loadingPulse 2s infinite;
+}
