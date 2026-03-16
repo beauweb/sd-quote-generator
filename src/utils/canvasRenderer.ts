@@ -140,123 +140,7 @@ export function drawPattern(
   ctx.globalAlpha = 1;
 }
 
-/**
- * Applies frame clip path to the canvas context
- */
-export function applyFrameClipPath(
-  ctx: CanvasRenderingContext2D,
-  frameStyle: string,
-  width: number,
-  height: number,
-  scaleFactor: number
-): void {
-  ctx.beginPath();
-  
-  if (frameStyle === 'rounded') {
-    const radius = 60 * scaleFactor;
-    ctx.roundRect(0, 0, width, height, radius);
-  } else if (frameStyle === 'circle') {
-    ctx.arc(width / 2, height / 2, Math.min(width, height) / 2, 0, Math.PI * 2);
-  } else if (frameStyle === 'polaroid') {
-    const topMargin = 40 * scaleFactor;
-    const sideMargin = 40 * scaleFactor;
-    const bottomMargin = 160 * scaleFactor;
-    ctx.rect(sideMargin, topMargin, width - sideMargin * 2, height - topMargin - bottomMargin);
-  } else if (frameStyle === 'arch') {
-    const radius = width / 2;
-    ctx.moveTo(0, height);
-    ctx.lineTo(width, height);
-    ctx.lineTo(width, radius);
-    ctx.arc(width / 2, radius, radius, 0, Math.PI, true);
-    ctx.closePath();
-  } else if (frameStyle === 'octagon') {
-    const cornerSize = (width / 3.5);
-    ctx.moveTo(cornerSize, 0);
-    ctx.lineTo(width - cornerSize, 0);
-    ctx.lineTo(width, cornerSize);
-    ctx.lineTo(width, height - cornerSize);
-    ctx.lineTo(width - cornerSize, height);
-    ctx.lineTo(cornerSize, height);
-    ctx.lineTo(0, height - cornerSize);
-    ctx.lineTo(0, cornerSize);
-    ctx.closePath();
-  } else if (frameStyle === 'diamond') {
-    ctx.moveTo(width / 2, 0);
-    ctx.lineTo(width, height / 2);
-    ctx.lineTo(width / 2, height);
-    ctx.lineTo(0, height / 2);
-    ctx.closePath();
-  } else if (frameStyle === 'scalloped') {
-    const scallopSize = 25 * scaleFactor;
-    ctx.moveTo(0, 0);
-    for (let x = scallopSize; x < width; x += scallopSize * 2) {
-      ctx.arc(x, 0, scallopSize, Math.PI, 0, true);
-    }
-    for (let y = scallopSize; y < height; y += scallopSize * 2) {
-      ctx.arc(width, y, scallopSize, -Math.PI / 2, Math.PI / 2, true);
-    }
-    for (let x = width - scallopSize; x > 0; x -= scallopSize * 2) {
-      ctx.arc(x, height, scallopSize, 0, Math.PI, true);
-    }
-    for (let y = height - scallopSize; y > 0; y -= scallopSize * 2) {
-      ctx.arc(0, y, scallopSize, Math.PI / 2, -Math.PI / 2, true);
-    }
-    ctx.closePath();
-  } else if (frameStyle === 'ticket') {
-    const notchSize = 40 * scaleFactor;
-    ctx.moveTo(0, notchSize);
-    ctx.arc(0, 0, notchSize, Math.PI / 2, 0, true);
-    ctx.lineTo(width - notchSize, 0);
-    ctx.arc(width, 0, notchSize, Math.PI, Math.PI / 2, true);
-    ctx.lineTo(width, height - notchSize);
-    ctx.arc(width, height, notchSize, -Math.PI / 2, Math.PI, true);
-    ctx.lineTo(notchSize, height);
-    ctx.arc(0, height, notchSize, 0, -Math.PI / 2, true);
-    ctx.closePath();
-  } else if (frameStyle === 'heart') {
-    ctx.moveTo(width / 2, height / 5);
-    ctx.bezierCurveTo(width / 2, height / 5, width / 2.5, 0, width / 6, 0);
-    ctx.bezierCurveTo(-width / 6, 0, -width / 6, height / 2.5, width / 2, height);
-    ctx.bezierCurveTo(width + width / 6, height / 2.5, width + width / 6, 0, width - width / 6, 0);
-    ctx.bezierCurveTo(width - width / 6, 0, width / 2, height / 5, width / 2, height / 5);
-    ctx.closePath();
-  } else if (frameStyle === 'star') {
-    const cx = width / 2;
-    const cy = height / 2;
-    const outerRadius = Math.min(width, height) / 2;
-    const innerRadius = outerRadius / 2.5;
-    const spikes = 5;
-    let rot = Math.PI / 2 * 3;
-    let x = cx;
-    let y = cy;
-    let step = Math.PI / spikes;
 
-    ctx.moveTo(cx, cy - outerRadius);
-    for (let i = 0; i < spikes; i++) {
-      x = cx + Math.cos(rot) * outerRadius;
-      y = cy + Math.sin(rot) * outerRadius;
-      ctx.lineTo(x, y);
-      rot += step;
-
-      x = cx + Math.cos(rot) * innerRadius;
-      y = cy + Math.sin(rot) * innerRadius;
-      ctx.lineTo(x, y);
-      rot += step;
-    }
-    ctx.lineTo(cx, cy - outerRadius);
-    ctx.closePath();
-  } else if (frameStyle === 'blob') {
-    // Elegant organic blob shape
-    ctx.moveTo(width * 0.5, height * 0.05);
-    ctx.bezierCurveTo(width * 0.8, height * 0.05, width * 0.95, height * 0.3, width * 0.95, height * 0.5);
-    ctx.bezierCurveTo(width * 0.95, height * 0.75, width * 0.85, height * 0.95, width * 0.5, height * 0.95);
-    ctx.bezierCurveTo(width * 0.2, height * 0.95, width * 0.05, height * 0.7, width * 0.05, height * 0.5);
-    ctx.bezierCurveTo(width * 0.05, height * 0.2, width * 0.25, height * 0.05, width * 0.5, height * 0.05);
-    ctx.closePath();
-  } else {
-    ctx.rect(0, 0, width, height);
-  }
-}
 
 /**
  * Applies text gradient to the canvas context
@@ -734,25 +618,7 @@ export function renderQuoteToCanvas(
   // Clear the canvas totally first (to ensure transparency behind clippings)
   ctx.clearRect(0, 0, width, height);
 
-  // Apply Frame Mask (Clipping)
-  const isClipped = settings.frameStyle && settings.frameStyle !== 'square';
-  if (isClipped) {
-    ctx.save();
-    applyFrameClipPath(ctx, settings.frameStyle as string, width, height, scaleFactor);
-    
-    // For polaroid, fill it white under the clip area before drawing the clipped photo background
-    if (settings.frameStyle === 'polaroid') {
-      // the actual polaroid outer border is standard, so let's fill whole canvas white first, then clip the "photo"
-      ctx.restore(); // cancel clip for outer rect
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, width, height);
-      
-      // now re-apply clip for photo area
-      ctx.save();
-      applyFrameClipPath(ctx, settings.frameStyle as string, width, height, scaleFactor);
-    }
-    ctx.clip(); // Normal clipping
-  }
+
 
   // Draw background
   drawBackground(ctx, settings, width, height);
@@ -762,11 +628,7 @@ export function renderQuoteToCanvas(
     drawPattern(ctx, settings.pattern, width, height, scaleFactor);
   }
 
-  // Restore clip so that text drawing isn't clipped if it overflows?
-  // Actually, usually text should be within the shape. But for polaroid, text is on the bottom margin.
-  if (isClipped) {
-    ctx.restore();
-  }
+
 
   // Calculate dimensions
   const fontSize = Math.round(settings.fontSize * scaleFactor);

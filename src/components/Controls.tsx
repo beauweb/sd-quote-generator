@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { QuoteSettings } from '../types';
-import { Type, Palette, Sparkles, Shapes } from 'lucide-react';
+import { Type, Palette, Sparkles } from 'lucide-react';
 import './Controls.css';
 import { ContentControls } from './controls/ContentControls';
 import { TextControls } from './controls/TextControls';
@@ -8,7 +8,7 @@ import { SignatureControls } from './controls/SignatureControls';
 import { BackgroundControls } from './controls/BackgroundControls';
 import { EffectsControls } from './controls/EffectsControls';
 import { TemplatesSection } from './controls/TemplatesSection';
-import { ShapeControls } from './controls/ShapeControls';
+
 
 interface ControlsProps {
   settings: QuoteSettings;
@@ -16,7 +16,7 @@ interface ControlsProps {
 }
 
 export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }) => {
-  const [activeTab, setActiveTab] = useState<'templates' | 'content' | 'style' | 'shapes'>('content');
+  const [activeTab, setActiveTab] = useState<'templates' | 'content' | 'style'>('content');
 
   const updateSettings = (newSettings: Partial<QuoteSettings>) => {
     onSettingsChange({ ...settings, ...newSettings });
@@ -47,13 +47,7 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
             <Sparkles size={16} />
             <span>Templates</span>
           </button>
-          <button
-            className={`tab ${activeTab === 'shapes' ? 'active' : ''}`}
-            onClick={() => setActiveTab('shapes')}
-          >
-            <Shapes size={16} />
-            <span>Shapes</span>
-          </button>
+
         </div>
       </div>
 
@@ -76,10 +70,7 @@ export const Controls: React.FC<ControlsProps> = ({ settings, onSettingsChange }
           <TemplatesSection settings={settings} onApply={updateSettings} />
         </div>
 
-        {/* Shapes Tab */}
-        <div className={`tab-panel ${activeTab === 'shapes' ? 'active' : ''}`}>
-          <ShapeControls settings={settings} onUpdate={updateSettings} />
-        </div>
+
       </div>
     </div>
   );

@@ -52,7 +52,6 @@ export interface QuoteSettings extends QuoteTemplate {
     repeat: 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y';
     blendMode: 'normal' | 'multiply' | 'screen' | 'overlay' | 'darken' | 'lighten' | 'color-dodge' | 'color-burn' | 'hard-light' | 'soft-light' | 'difference' | 'exclusion' | 'hue' | 'saturation' | 'color' | 'luminosity';
   };
-  frameStyle?: 'square' | 'rounded' | 'circle' | 'arch' | 'polaroid' | 'scalloped' | 'diamond' | 'octagon' | 'heart' | 'star' | 'blob' | 'ticket';
 }
 
 export interface TextShadowEffect {
